@@ -5911,14 +5911,14 @@ bool Style::drawToolBarBackgroundControl(const QStyleOption *option, QPainter *p
 
     if (StyleConfigData::toolBarOpacity() < 100 && !_isOpaque) {
         opacityBackground = _helper->transparentBarBgColor(opacityBackground, painter, rect, BarType::ToolBar);
-        painter->fillRect(rect, opacityBackground);
+        _helper->renderFrame(painter, rect, opacityBackground, true, true);
     }
 
     // painter->fillRect(rect, backgroundColor);
 
     if (sideToolbarDolphin && _isDolphin) {
         backgroundColor.setAlphaF(StyleConfigData::dolphinSidebarOpacity() / 100.0 - 0.15);
-        painter->fillRect(rect, backgroundColor);
+        _helper->renderFrame(painter, rect, backgroundColor, true, true);
 
         bool darkTheme(_helper->isDarkTheme(palette));
 
@@ -6519,7 +6519,9 @@ bool Style::drawHeaderSectionControl(const QStyleOption *option, QPainter *paint
 
     const bool horizontal(headerOption->orientation == Qt::Horizontal);
     const bool isFirst(horizontal && (headerOption->position == QStyleOptionHeader::Beginning));
-    const bool isCorner(widget && widget->inherits("QTableCornerButton"));
+    // const bool isMiddle(horizontal && (headerOption->position == QStyleOptionHeader::Middle));
+    // const bool isLast(horizontal && (headerOption->position == QStyleOptionHeader::End));
+    // const bool isCorner(widget && widget->inherits("QTableCornerButton"));
     const bool reverseLayout(option->direction == Qt::RightToLeft);
 
     // update animation state
@@ -6544,11 +6546,15 @@ bool Style::drawHeaderSectionControl(const QStyleOption *option, QPainter *paint
 
     // make the top left corner of the first header rounded so that it doest poke out of the view
     if (isFirst && horizontal) {
-        const int radius = StyleConfigData::cornerRadius();
+        const int height = rect.bottomLeft().y() - rect.topLeft().y();
+        const int width = rect.topRight().x() - rect.topLeft().x();
+        const int minDim = qMin(width, height);
+        const int radius = qMin(minDim / 2, StyleConfigData::cornerRadius());
+
         painter->setRenderHint(QPainter::Antialiasing, true);
         painter->setBrush(color);
         painter->setPen(Qt::NoPen);
-        painter->drawRoundedRect(QRect(rect.topLeft().x(), rect.topLeft().y(), radius + 2, radius + 2), radius + 1, radius + 1);
+        painter->drawRoundedRect(QRect(rect.topLeft().x(), rect.topLeft().y(), radius * 2, radius * 2), radius, radius);
         painter->drawRect(rect.topLeft().x(), rect.topLeft().y() + radius, rect.width(), rect.height() - radius);
         painter->drawRect(rect.topLeft().x() + radius, rect.topLeft().y(), rect.width() - radius, rect.height());
         painter->setRenderHint(QPainter::Antialiasing, false);
@@ -6563,6 +6569,7 @@ bool Style::drawHeaderSectionControl(const QStyleOption *option, QPainter *paint
     painter->setBrush(Qt::NoBrush);
     painter->setPen(_helper->alphaColor(palette.color(QPalette::WindowText), 0.1));
 
+    /*
     if (isCorner) {
         if (reverseLayout)
             painter->drawPoint(rect.bottomLeft());
@@ -6578,6 +6585,7 @@ bool Style::drawHeaderSectionControl(const QStyleOption *option, QPainter *paint
         else
             painter->drawLine(rect.topRight(), rect.bottomRight());
     }
+    */
 
     // separators
     painter->setPen(_helper->alphaColor(palette.color(QPalette::WindowText), 0.2));
@@ -6611,15 +6619,31 @@ bool Style::drawHeaderEmptyAreaControl(const QStyleOption *option, QPainter *pai
     const bool reverseLayout(option->direction == Qt::RightToLeft);
 
     // fill
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    painter->setBrush(palette.color(QPalette::Button));
-    painter->setPen(Qt::NoPen);
-    painter->drawRect(rect);
+    if (horizontal) {
+        const int height = rect.bottomLeft().y() - rect.topLeft().y();
+        const int width = rect.topRight().x() - rect.topLeft().x();
+        const int minDim = qMin(width, height);
+        const int radius = qMin(minDim / 2, StyleConfigData::cornerRadius());
+
+        painter->setRenderHint(QPainter::Antialiasing, true);
+        painter->setBrush(palette.color(QPalette::Button));
+        painter->setPen(Qt::NoPen);
+        painter->drawRoundedRect(QRect(rect.topRight().x() - radius * 2, rect.topLeft().y(), radius * 2, radius * 2), radius, radius);
+        painter->drawRect(rect.topLeft().x(), rect.topLeft().y() + radius, rect.width(), rect.height() - radius);
+        painter->drawRect(rect.topLeft().x(), rect.topLeft().y() - radius, rect.width() - radius, rect.height());
+        painter->setRenderHint(QPainter::Antialiasing, false);
+    } else {
+        painter->setRenderHint(QPainter::Antialiasing, false);
+        painter->setBrush(palette.color(QPalette::Button));
+        painter->setPen(Qt::NoPen);
+        painter->drawRect(rect);
+    }
 
     // outline
     painter->setBrush(Qt::NoBrush);
     painter->setPen(_helper->alphaColor(palette.color(QPalette::ButtonText), 0.1));
 
+    /*
     if (horizontal) {
         painter->drawLine(rect.bottomLeft(), rect.bottomRight());
 
@@ -6629,6 +6653,7 @@ bool Style::drawHeaderEmptyAreaControl(const QStyleOption *option, QPainter *pai
         else
             painter->drawLine(rect.topRight(), rect.bottomRight());
     }
+    */
 
     return true;
 }
