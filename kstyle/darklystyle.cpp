@@ -265,6 +265,15 @@ void Style::polish(QWidget *widget)
     if (!widget)
         return;
 
+    QPalette palette = widget->palette();
+    QColor color = palette.color(QPalette::Window);
+    color.setAlpha(0.0);
+    palette.setColor(QPalette::Active, QPalette::Window, color);
+    palette.setColor(QPalette::Inactive, QPalette::Window, color);
+    palette.setColor(QPalette::Disabled, QPalette::Window, color);
+
+    widget->setPalette(palette);
+
     // register widget to animations
     _animations->registerWidget(widget);
     _windowManager->registerWidget(widget);
@@ -617,8 +626,6 @@ void Style::unpolish(QWidget *widget)
     }
 
     if (_translucentWidgets.contains(widget)) {
-        widget->setAttribute(Qt::WA_NoSystemBackground, false);
-        widget->setAttribute(Qt::WA_TranslucentBackground, false);
         _translucentWidgets.remove(widget);
         widget->removeEventFilter(this);
     }
@@ -1103,6 +1110,17 @@ QStyle::SubControl Style::hitTestComplexControl(ComplexControl control, const QS
 //______________________________________________________________
 void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const
 {
+    if (widget) {
+        QPalette palette = widget->palette();
+        QColor color = palette.color(QPalette::Window);
+        color.setAlpha(0.0);
+        palette.setColor(QPalette::Active, QPalette::Window, color);
+        palette.setColor(QPalette::Inactive, QPalette::Window, color);
+        palette.setColor(QPalette::Disabled, QPalette::Window, color);
+
+        ((QWidget *)widget)->setPalette(palette);
+    }
+
     StylePrimitive fcn;
     switch (element) {
     case PE_PanelButtonCommand:
@@ -8604,61 +8622,9 @@ void Style::setSurfaceFormat(QWidget *widget) const
         || _translucentWidgets.contains(widget))
         return;
 
-    if (widget->inherits("QTipLabel")) {
-        return;
-    } else {
-        switch (widget->windowFlags() & Qt::WindowType_Mask) {
-        case Qt::Window:
-        case Qt::Dialog:
-        case Qt::Popup:
-        case Qt::Sheet:
-            break;
-        default:
-            return;
-        }
-        if (widget->windowHandle() // too late
-            || widget->windowFlags().testFlag(Qt::FramelessWindowHint) || widget->windowFlags().testFlag(Qt::X11BypassWindowManagerHint)
-            || qobject_cast<QFrame *>(widget) // a floating frame, as in Filelight
-            || widget->windowType() == Qt::Desktop || widget->testAttribute(Qt::WA_PaintOnScreen) || widget->testAttribute(Qt::WA_X11NetWmWindowTypeDesktop)
-            || widget->inherits("KScreenSaver") || widget->inherits("QSplashScreen"))
-            return;
-
-        QWidget *p = widget->parentWidget();
-        if (p
-            && (/*!p->testAttribute(Qt::WA_WState_Created) // FIXME: too soon?
-              ||*/
-                qobject_cast<QMdiSubWindow *>(p))) // as in linguist
-        {
-            return;
-        }
-
-        if (QMainWindow *mw = qobject_cast<QMainWindow *>(widget)) {
-            /* it's possible that a main window is inside another one
-                (like FormPreviewView in linguist), in which case,
-                translucency could cause weird effects */
-            if (p)
-                return;
-            /* stylesheets with background can cause total transparency */
-            QString ss = mw->styleSheet();
-            if (!ss.isEmpty() && ss.contains("background"))
-                return;
-            if (QWidget *cw = mw->centralWidget()) {
-                if (cw->autoFillBackground())
-                    return;
-                ss = cw->styleSheet();
-                if (!ss.isEmpty() && ss.contains("background"))
-                    return; // as in smplayer
-            }
-        }
-    }
-
     if (!_helper->compositingActive()) return;
 
     widget->setAttribute(Qt::WA_TranslucentBackground);
-
-    /* distinguish forced translucency from hard-coded translucency */
-    // forcedTranslucency_.insert(widget);
-    // connect(widget, &QObject::destroyed, this, &Style::noTranslucency); // needed?
 }
 
 //____________________________________________________________________
