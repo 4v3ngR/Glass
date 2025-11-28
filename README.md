@@ -10,7 +10,7 @@ This fork attempts to revive lightly with a different approach from boehs, with 
 
 This means that this fork allows real changes, and not just maintainence.
 
-![Glass](./preview.png)
+![Glass](./.preview.png)
 
 ## What changed?
 
