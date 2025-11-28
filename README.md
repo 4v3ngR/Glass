@@ -12,15 +12,18 @@ This means that this fork allows real changes, and not just maintainence.
 
 ![Glass](./.preview.png)
 
-## What changed?
+## What changed (and what I want to do)
 
-- [x] Redesign the tabbar
-- [x] Make the buttons sligthly larger
-- [x] Change the defaults to fit the normal use-cases better
-- [x] Add my own colorscheme to it
-- [x] Make installation in all major distros easy
-- [x] Rename the project to something like „Glass”
-- [x] Maintain the project
+### style
+- [X] Reduce logic
+- [X] Fix for black backgrounds in Konsole and transmission (and likely others)
+- [X] Make the window background color transparent
+- [X] Various other tweaks to my liking
+- [ ] Remove configuration options that no longer do anything
+
+### WM
+- [ ] Make the window decorations transparent
+- [ ] Be able to replace my aurorae WM theme (pictured above)
 
 ## Installation
 
