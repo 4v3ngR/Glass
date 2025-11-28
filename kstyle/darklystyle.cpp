@@ -321,102 +321,17 @@ void Style::polish(QWidget *widget)
         _isBarsOpaque = true;
     }
 
-    // translucent (window) color scheme support
-    switch (widget->windowFlags() & Qt::WindowType_Mask) {
-    case Qt::Window:
-    case Qt::Dialog:
-    case Qt::Popup:
-    case Qt::ToolTip:
-    case Qt::Sheet: {
-        // QRegion wMask = widget->mask();
-        // if( !wMask.isEmpty() && wMask != QRegion(widget->rect() ) ) break;
-
-        if (_isOpaque)
-            break;
-        if (qobject_cast<QMenu *>(widget))
-            break;
-
-        QWidget *pw = widget->parentWidget();
-        if (qobject_cast<QAbstractButton*>(widget)
-                || qobject_cast<QAbstractSlider*>(widget)
-                || qobject_cast<QAbstractItemView*>(pw)
-                || widget->inherits("QSplitterHandle")
-                || widget->inherits("QHeaderView")
-                || widget->inherits("QSizeGrip"))
-        {
-            widget->setAttribute(Qt::WA_Hover, true);
-        }
-
-        if (widget->inherits("QTipLabel") || qobject_cast<QLabel *>(widget) // a floating label, as in Filelight
-                 || widget->inherits("QComboBoxPrivateContainer") // at most, a menu
-                 /* like Vokoscreen's (old) QvkRegionChoise */
-                 || (widget->windowFlags().testFlag(Qt::WindowStaysOnTopHint) && widget->testAttribute(Qt::WA_NoSystemBackground)
-                     && ((widget->windowFlags() & Qt::WindowType_Mask) == Qt::ToolTip || (widget->windowState() & Qt::WindowFullScreen)))) {
-            break;
-        }
-
-        if (!_helper->shouldWindowHaveAlpha(widget->palette(), _isDolphin) || _isOpaque) {
-            // register blur is required even in konsole
-            if (!_isBarsOpaque) {
-                break;
-            }
-        }
-
-        /* take all precautions */
-        if (!_subApp && !_isLibreoffice && widget->isWindow() && widget->windowType() != Qt::Desktop && !widget->testAttribute(Qt::WA_PaintOnScreen)
-            && !widget->testAttribute(Qt::WA_X11NetWmWindowTypeDesktop) && !widget->inherits("KScreenSaver") && !widget->inherits("QSplashScreen")) {
-            // if( _isPlasma && !qobject_cast<QDialog*>(widget) ) break;
-            if (!_helper->compositingActive())
-                break; // TODO: remove alpha
-            if (widget->windowFlags().testFlag(Qt::FramelessWindowHint))
-                break;
-
-            // konsole handle blur and translucency for menubar/toolbar/tabbar
-            if (_isKonsole) {
-                _translucentWidgets.insert(widget);
-                if (widget->palette().color(widget->backgroundRole()).alpha() < 255 || _helper->titleBarColor(true).alphaF() * 100.0 < 100 || _isBarsOpaque) {
-                    // stop flickering on translucent background
-                    widget->setAttribute(Qt::WA_NoSystemBackground, false);
-                }
-
-                // paint the background in event filter
-                addEventFilter(widget);
-                break;
-            }
-
-            // make window translucent
-            if (!widget->testAttribute(Qt::WA_TranslucentBackground))
-                widget->setAttribute(Qt::WA_TranslucentBackground);
-
-            if (!widget->testAttribute(Qt::WA_StyledBackground))
-                widget->setAttribute(Qt::WA_StyledBackground);
-
-            // setting Qt::WA_TranslucentBackground enables Qt::WA_NoSystemBackground unset here to stop flickering during repaint events on resizing
-            if (StyleConfigData::transparentDolphinView() && widget->testAttribute(Qt::WA_NoSystemBackground))
-                widget->setAttribute(Qt::WA_NoSystemBackground, false);
-
-            _translucentWidgets.insert(widget);
-
-            // paint the background in event filter
-            addEventFilter(widget);
-
-            // blur
-            if (widget->palette().color(widget->backgroundRole()).alpha() < 255 || _helper->titleBarColor(true).alphaF() * 100.0 < 100
-                || (StyleConfigData::dolphinSidebarOpacity() < 100 && _isDolphin)) {
-                _blurHelper->registerWidget(widget, _isDolphin);
-            }
-        }
-    }
-    }
-
-    // hack Dolphin's view
-    if (_isDolphin && qobject_cast<QAbstractScrollArea *>(getParent(widget, 2))
-        && !qobject_cast<QAbstractScrollArea *>(getParent(widget, 3))) {
-        if (widget->autoFillBackground())
-            widget->setAutoFillBackground(false);
-    }
-
+    widget->setAttribute(Qt::WA_Hover, true);
+    _translucentWidgets.insert(widget);
+    widget->setAttribute(Qt::WA_NoSystemBackground, false);
+    addEventFilter(widget);
+    widget->setAttribute(Qt::WA_TranslucentBackground);
+    widget->setAttribute(Qt::WA_StyledBackground);
+    _blurHelper->registerWidget(widget, _isDolphin);
     widget->setAutoFillBackground(false);
+    widget->setBackgroundRole(QPalette::Window);
+    widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
+    widget->setAttribute(Qt::WA_StyledBackground);
 
     // scrollarea polishing is somewhat complex. It is moved to a dedicated method
     polishScrollArea(qobject_cast<QAbstractScrollArea *>(widget));
@@ -430,28 +345,9 @@ void Style::polish(QWidget *widget)
         if (groupBox->isCheckable()) {
             groupBox->setAttribute(Qt::WA_Hover);
         }
-
-    } else if (qobject_cast<QAbstractButton *>(widget) && qobject_cast<QDockWidget *>(widget->parent())) {
-        widget->setAttribute(Qt::WA_Hover);
-
-    } else if (qobject_cast<QAbstractButton *>(widget) && qobject_cast<QToolBox *>(widget->parent())) {
-        widget->setAttribute(Qt::WA_Hover);
-
-    } else if (qobject_cast<QFrame *>(widget) && widget->parent() && widget->parent()->inherits("KTitleWidget")) {
-        widget->setAutoFillBackground(false);
-        if (!StyleConfigData::titleWidgetDrawFrame()) {
-            widget->setBackgroundRole(QPalette::Window);
-        }
     }
 
-    if (qobject_cast<QScrollBar *>(widget)) {
-        // remove opaque painting for scrollbars
-        widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
-
-    } else if (widget->inherits("KTextEditor::View")) {
-        addEventFilter(widget);
-
-    } else if (auto toolButton = qobject_cast<QToolButton *>(widget)) {
+    if (auto toolButton = qobject_cast<QToolButton *>(widget)) {
         if (toolButton->autoRaise()) {
             // for flat toolbuttons, adjust foreground and background role accordingly
             widget->setBackgroundRole(QPalette::NoRole);
@@ -461,71 +357,24 @@ void Style::polish(QWidget *widget)
         if (widget->parentWidget() && widget->parentWidget()->parentWidget() && widget->parentWidget()->parentWidget()->inherits("Gwenview::SideBarGroup")) {
             widget->setProperty(PropertyNames::toolButtonAlignment, Qt::AlignLeft);
         }
+    }
 
-    } else if (qobject_cast<QDockWidget *>(widget)) {
+    if (qobject_cast<QDockWidget *>(widget)) {
         // add event filter on dock widgets
         // and alter palette
-        widget->setAutoFillBackground(false);
         widget->setContentsMargins(StyleConfigData::fancyMargins() ? 5 : Metrics::Frame_FrameWidth, Metrics::Frame_FrameWidth, StyleConfigData::fancyMargins() ? 5 : Metrics::Frame_FrameWidth, Metrics::Frame_FrameWidth);
-        addEventFilter(widget);
+    }
 
-    } else if (qobject_cast<QMdiSubWindow *>(widget)) {
-        widget->setAutoFillBackground(false);
-        addEventFilter(widget);
-
-    } else if (qobject_cast<QToolBox *>(widget)) {
-        widget->setBackgroundRole(QPalette::NoRole);
-        widget->setAutoFillBackground(false);
-
-    } else if (widget->parentWidget() && widget->parentWidget()->parentWidget()
-               && qobject_cast<QToolBox *>(widget->parentWidget()->parentWidget()->parentWidget())) {
-        widget->setBackgroundRole(QPalette::NoRole);
-        widget->setAutoFillBackground(false);
+    if (widget->parentWidget() && widget->parentWidget()->parentWidget() && qobject_cast<QToolBox *>(widget->parentWidget()->parentWidget()->parentWidget())) {
         widget->parentWidget()->setAutoFillBackground(false);
+    }
 
-    } else if (qobject_cast<QMenu *>(widget)) {
-        setTranslucentBackground(widget);
-
-        if (widget->testAttribute(Qt::WA_TranslucentBackground) && StyleConfigData::menuOpacity() < 100) {
-            _blurHelper->registerWidget(widget->window(), _isDolphin);
-        }
-
-    } else if (qobject_cast<QCommandLinkButton *>(widget)) {
-        addEventFilter(widget);
-
-    } else if (auto comboBox = qobject_cast<QComboBox *>(widget)) {
+    if (auto comboBox = qobject_cast<QComboBox *>(widget)) {
         if (!hasParent(widget, "QWebView")) {
             auto itemView(comboBox->view());
             if (itemView && itemView->itemDelegate() && itemView->itemDelegate()->inherits("QComboBoxDelegate")) {
                 itemView->setItemDelegate(new DarklyPrivate::ComboBoxItemDelegate(itemView));
             }
-        }
-    } else if (widget->inherits("QComboBoxPrivateContainer")) {
-        addEventFilter(widget);
-        setTranslucentBackground(widget);
-
-    } else if (widget->inherits("QTipLabel")) {
-        setTranslucentBackground(widget);
-
-    } else if (qobject_cast<QMainWindow *>(widget)) {
-        widget->setAttribute(Qt::WA_StyledBackground);
-    } else if (qobject_cast<QDialogButtonBox *>(widget)) {
-        addEventFilter(widget);
-        // opaque menubar / toolbar / tabbar register blur
-    } else if (_isBarsOpaque) {
-        _blurHelper->registerWidget(widget->window(), _isDolphin);
-    }
-
-    if (_toolsAreaManager->hasHeaderColors()) {
-        // style TitleWidget and Search KPageView to look the same as KDE System Settings
-        if (widget->objectName() == QLatin1String("KPageView::TitleWidget")) {
-            widget->setAutoFillBackground(true);
-            widget->setPalette(_toolsAreaManager->palette());
-            addEventFilter(widget);
-        } else if (widget->objectName() == QLatin1String("KPageView::Search")) {
-            widget->setBackgroundRole(QPalette::Window);
-            widget->setPalette(_toolsAreaManager->palette());
-            addEventFilter(widget);
         }
     }
 
