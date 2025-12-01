@@ -173,7 +173,7 @@ void Button::drawIcon(QPainter *painter) const
     if (backgroundColor.isValid()) {
         painter->setPen(Qt::NoPen);
         painter->setBrush(backgroundColor);
-        painter->drawEllipse(QRectF(2, 2, 14, 14));
+        painter->drawEllipse(QRectF(0, 0, 18, 18));
     }
 
     // render mark
@@ -188,6 +188,7 @@ void Button::drawIcon(QPainter *painter) const
         painter->setPen(pen);
         painter->setBrush(Qt::NoBrush);
 
+        // TODO: create different forground images for the traffic lights
         switch (type()) {
         case DecorationButtonType::Close: {
             /*
