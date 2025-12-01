@@ -173,7 +173,7 @@ void Button::drawIcon(QPainter *painter) const
     if (backgroundColor.isValid()) {
         painter->setPen(Qt::NoPen);
         painter->setBrush(backgroundColor);
-        painter->drawEllipse(QRectF(0, 0, 18, 18));
+        painter->drawEllipse(QRectF(2, 2, 14, 14));
     }
 
     // render mark
@@ -190,26 +190,30 @@ void Button::drawIcon(QPainter *painter) const
 
         switch (type()) {
         case DecorationButtonType::Close: {
-            painter->drawLine(QPointF(5, 5), QPointF(13, 13));
-            painter->drawLine(13, 5, 5, 13);
+            /*
+painter->drawLine(QPointF(5, 5), QPointF(13, 13));
+painter->drawLine(13, 5, 5, 13);
+*/
             break;
         }
 
         case DecorationButtonType::Maximize: {
-            if (isChecked()) {
-                pen.setJoinStyle(Qt::RoundJoin);
-                painter->setPen(pen);
+            /*
+if (isChecked()) {
+pen.setJoinStyle(Qt::RoundJoin);
+painter->setPen(pen);
 
-                painter->drawPolygon(QVector<QPointF>{QPointF(4, 9), QPointF(9, 4), QPointF(14, 9), QPointF(9, 14)});
+painter->drawPolygon(QVector<QPointF>{QPointF(4, 9), QPointF(9, 4), QPointF(14, 9), QPointF(9, 14)});
 
-            } else {
-                painter->drawPolyline(QVector<QPointF>{QPointF(4, 11), QPointF(9, 6), QPointF(14, 11)});
-            }
+} else {
+painter->drawPolyline(QVector<QPointF>{QPointF(4, 11), QPointF(9, 6), QPointF(14, 11)});
+}
+*/
             break;
         }
 
         case DecorationButtonType::Minimize: {
-            painter->drawPolyline(QVector<QPointF>{QPointF(4, 7), QPointF(9, 12), QPointF(14, 7)});
+            // painter->drawPolyline(QVector<QPointF>{QPointF(4, 7), QPointF(9, 12), QPointF(14, 7)});
             break;
         }
 
@@ -334,43 +338,32 @@ QColor Button::backgroundColor() const
     auto c = d->window();
     if (isPressed()) {
         if (type() == DecorationButtonType::Close)
-            return c->color(ColorGroup::Warning, ColorRole::Foreground);
-        else
-            return KColorUtils::mix(d->titleBarColor(), d->fontColor(), 0.3);
-
-    } else if ((type() == DecorationButtonType::KeepBelow || type() == DecorationButtonType::KeepAbove || type() == DecorationButtonType::Shade)
-               && isChecked()) {
-        return d->fontColor();
-
-    } else if (m_animation->state() == QAbstractAnimation::Running) {
-        if (type() == DecorationButtonType::Close) {
-            if (d->internalSettings()->outlineCloseButton()) {
-                return KColorUtils::mix(d->fontColor(), c->color(ColorGroup::Warning, ColorRole::Foreground).lighter(), m_opacity);
-
-            } else {
-                QColor color(c->color(ColorGroup::Warning, ColorRole::Foreground).lighter());
-                color.setAlpha(color.alpha() * m_opacity);
-                return color;
+            switch (type()) {
+            case DecorationButtonType::Close:
+                return c->color(ColorGroup::Warning, ColorRole::Foreground);
+            case DecorationButtonType::Minimize:
+                return QColorConstants::Yellow;
+            case DecorationButtonType::Maximize:
+                return QColorConstants::Green;
+            default:
+                return KColorUtils::mix(d->titleBarColor(), d->fontColor(), 0.3);
             }
-
-        } else {
-            QColor color(d->fontColor());
-            color.setAlpha(color.alpha() * m_opacity);
-            return color;
-        }
-
-    } else if (isHovered()) {
-        if (type() == DecorationButtonType::Close)
-            return c->color(ColorGroup::Warning, ColorRole::Foreground).lighter();
-        else
-            return d->fontColor();
-
-    } else if (type() == DecorationButtonType::Close && d->internalSettings()->outlineCloseButton()) {
-        return d->fontColor();
-
     } else {
-        return QColor();
+        QColor color;
+        switch (type()) {
+        case DecorationButtonType::Close:
+            return c->color(ColorGroup::Warning, ColorRole::Foreground).lighter();
+        case DecorationButtonType::Minimize:
+            color = QColorConstants::Yellow;
+            return color.lighter();
+        case DecorationButtonType::Maximize:
+            color = QColorConstants::Green;
+            return color.lighter();
+        default:
+            return d->fontColor();
+        }
     }
+    return QColor();
 }
 
 //________________________________________________________________
