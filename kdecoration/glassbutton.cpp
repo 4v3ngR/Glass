@@ -349,27 +349,39 @@ QColor Button::backgroundColor() const
             default:
                 return KColorUtils::mix(d->titleBarColor(), d->fontColor(), 0.3);
             }
-        } else {
-            QColor color;
-            switch (type()) {
-            case DecorationButtonType::Close:
-                return c->color(ColorGroup::Warning, ColorRole::Foreground).lighter();
-            case DecorationButtonType::Minimize:
-                color = QColorConstants::Yellow;
-                return color.lighter();
-            case DecorationButtonType::Maximize:
-                color = QColorConstants::Green;
-                return color.lighter();
-            default:
-                break;
-            }
+        }
+
+        QColor color;
+        auto alpha = 128;
+
+        if (isHovered()) {
+            alpha = 192;
+        }
+
+        switch (type()) {
+        case DecorationButtonType::Close:
+            color = c->color(ColorGroup::Warning, ColorRole::Foreground);
+            color.setAlpha(alpha);
+            return color;
+        case DecorationButtonType::Minimize:
+            color = QColorConstants::Yellow;
+            color.setAlpha(alpha);
+            return color;
+        case DecorationButtonType::Maximize:
+            color = QColorConstants::Green;
+            color.setAlpha(alpha);
+            return color;
+        default:
+            break;
         }
     } else {
+        QColor color = QColorConstants::LightGray;
+        color.setAlpha(128);
         switch (type()) {
         case DecorationButtonType::Close:
         case DecorationButtonType::Minimize:
         case DecorationButtonType::Maximize:
-            return QColorConstants::LightGray;
+            return color;
         default:
             break;
         }
