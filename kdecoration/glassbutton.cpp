@@ -360,7 +360,7 @@ QColor Button::backgroundColor() const
             color = QColorConstants::Green;
             return color.lighter();
         default:
-            return d->fontColor();
+            break;
         }
     }
     return QColor();
