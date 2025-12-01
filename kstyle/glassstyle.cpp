@@ -366,10 +366,7 @@ void Style::polish(QWidget *widget)
             // konsole handle blur and translucency for menubar/toolbar/tabbar
             if (_isKonsole) {
                 _translucentWidgets.insert(widget);
-                if (widget->palette().color(widget->backgroundRole()).alpha() < 255 || _helper->titleBarColor(true).alphaF() * 100.0 < 100 || _isBarsOpaque) {
-                    // stop flickering on translucent background
-                    widget->setAttribute(Qt::WA_NoSystemBackground, false);
-                }
+                widget->setAttribute(Qt::WA_NoSystemBackground, false);
 
                 // paint the background in event filter
                 addEventFilter(widget);
@@ -384,8 +381,7 @@ void Style::polish(QWidget *widget)
                 widget->setAttribute(Qt::WA_StyledBackground);
 
             // setting Qt::WA_TranslucentBackground enables Qt::WA_NoSystemBackground unset here to stop flickering during repaint events on resizing
-            if (StyleConfigData::transparentDolphinView() && widget->testAttribute(Qt::WA_NoSystemBackground))
-                widget->setAttribute(Qt::WA_NoSystemBackground, false);
+            widget->setAttribute(Qt::WA_NoSystemBackground, false);
 
             _translucentWidgets.insert(widget);
 
@@ -393,10 +389,10 @@ void Style::polish(QWidget *widget)
             addEventFilter(widget);
 
             // blur
-            if (widget->palette().color(widget->backgroundRole()).alpha() < 255 || _helper->titleBarColor(true).alphaF() * 100.0 < 100
-                || (StyleConfigData::dolphinSidebarOpacity() < 100 && _isDolphin)) {
-                _blurHelper->registerWidget(widget, _isDolphin);
-            }
+            // if (widget->palette().color(widget->backgroundRole()).alpha() < 255 || _helper->titleBarColor(true).alphaF() * 100.0 < 100
+            // || (StyleConfigData::dolphinSidebarOpacity() < 100 && _isDolphin)) {
+            _blurHelper->registerWidget(widget, _isDolphin);
+            // }
         }
     }
     }
@@ -1607,7 +1603,7 @@ bool Style::eventFilter(QObject *object, QEvent *event)
             if (widget->palette().color(QPalette::Window).alpha() <= 255) {
                 if ((qobject_cast<QToolBar *>(widget) || qobject_cast<QMenuBar *>(widget)) || _isBarsOpaque || _helper->titleBarColor(true).alphaF() < 1.0) {
                     if (event->type() == QEvent::Move || event->type() == QEvent::Show || event->type() == QEvent::Hide) {
-                        if (_translucentWidgets.contains(widget->window()) && !_isKonsole) {
+                        if (_translucentWidgets.contains(widget->window()) /*&& !_isKonsole*/) {
                             _blurHelper->forceUpdate(widget->window());
                         }
                     }
@@ -8693,6 +8689,9 @@ void Style::setSurfaceFormat(QWidget *widget) const
 {
     if (!widget)
         return;
+
+    widget->setAttribute(Qt::WA_TranslucentBackground);
+    return;
 
     if (widget->testAttribute(Qt::WA_WState_Created) || widget->testAttribute(Qt::WA_TranslucentBackground) || widget->testAttribute(Qt::WA_NoSystemBackground)
         || widget->autoFillBackground() // video players like kaffeine
