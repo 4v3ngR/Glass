@@ -202,6 +202,9 @@ bool Decoration::init()
     m_animation->setStartValue(0.0);
     m_animation->setEndValue(1.0);
     m_animation->setEasingCurve(QEasingCurve::InOutQuad);
+    connect(m_animation, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
+        setOpacity(value.toReal());
+    });
 
     reconfigure();
     updateTitleBar();

@@ -336,32 +336,45 @@ QColor Button::backgroundColor() const
     }
 
     auto c = d->window();
-    if (isPressed()) {
-        switch (type()) {
-        case DecorationButtonType::Close:
-            return c->color(ColorGroup::Warning, ColorRole::Foreground);
-        case DecorationButtonType::Minimize:
-            return QColorConstants::Yellow;
-        case DecorationButtonType::Maximize:
-            return QColorConstants::Green;
-        default:
-            return KColorUtils::mix(d->titleBarColor(), d->fontColor(), 0.3);
+
+    if (c->isActive()) {
+        if (isPressed()) {
+            switch (type()) {
+            case DecorationButtonType::Close:
+                return c->color(ColorGroup::Warning, ColorRole::Foreground);
+            case DecorationButtonType::Minimize:
+                return QColorConstants::Yellow;
+            case DecorationButtonType::Maximize:
+                return QColorConstants::Green;
+            default:
+                return KColorUtils::mix(d->titleBarColor(), d->fontColor(), 0.3);
+            }
+        } else {
+            QColor color;
+            switch (type()) {
+            case DecorationButtonType::Close:
+                return c->color(ColorGroup::Warning, ColorRole::Foreground).lighter();
+            case DecorationButtonType::Minimize:
+                color = QColorConstants::Yellow;
+                return color.lighter();
+            case DecorationButtonType::Maximize:
+                color = QColorConstants::Green;
+                return color.lighter();
+            default:
+                break;
+            }
         }
     } else {
-        QColor color;
         switch (type()) {
         case DecorationButtonType::Close:
-            return c->color(ColorGroup::Warning, ColorRole::Foreground).lighter();
         case DecorationButtonType::Minimize:
-            color = QColorConstants::Yellow;
-            return color.lighter();
         case DecorationButtonType::Maximize:
-            color = QColorConstants::Green;
-            return color.lighter();
+            return QColorConstants::LightGray;
         default:
             break;
         }
     }
+
     return QColor();
 }
 
