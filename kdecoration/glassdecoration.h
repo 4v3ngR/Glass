@@ -130,7 +130,6 @@ private:
     void createButtons();
     void calculateWindowAndTitleBarShapes(const bool windowShapeOnly = false);
     void paintTitleBar(QPainter *painter, const QRectF &repaintRegion);
-    void createShadow();
     void setScaledCornerRadius();
 
     //*@name border size

@@ -134,9 +134,6 @@ using KDecoration3::ColorGroup;
 using KDecoration3::ColorRole;
 
 //________________________________________________________________
-static int g_sDecoCount = 0;
-static int g_shadowSizeEnum = InternalSettings::ShadowLarge;
-static int g_shadowStrength = 255;
 static QColor g_shadowColor = Qt::black;
 static std::shared_ptr<KDecoration3::DecorationShadow> g_sShadow;
 
@@ -145,17 +142,11 @@ Decoration::Decoration(QObject *parent, const QVariantList &args)
     : KDecoration3::Decoration(parent, args)
     , m_animation(new QVariantAnimation(this))
 {
-    g_sDecoCount++;
 }
 
 //________________________________________________________________
 Decoration::~Decoration()
 {
-    g_sDecoCount--;
-    if (g_sDecoCount == 0) {
-        // last deco destroyed, clean up shadow
-        g_sShadow.reset();
-    }
 }
 
 //________________________________________________________________
@@ -211,9 +202,6 @@ bool Decoration::init()
     m_animation->setStartValue(0.0);
     m_animation->setEndValue(1.0);
     m_animation->setEasingCurve(QEasingCurve::InOutQuad);
-    connect(m_animation, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
-        setOpacity(value.toReal());
-    });
 
     reconfigure();
     updateTitleBar();
@@ -263,25 +251,12 @@ bool Decoration::init()
     connect(this, &KDecoration3::Decoration::bordersChanged, this, &Decoration::updateButtonsGeometryDelayed);
 
     createButtons();
-    createShadow();
     return true;
 }
 
 //________________________________________________________________
 void Decoration::updateBlur()
 {
-    auto c = window();
-    const QColor titleBarColor = c->color(c->isActive() ? ColorGroup::Active : ColorGroup::Inactive, ColorRole::TitleBar);
-
-    // set opaque to false when non-maximized, regardless of color (prevents kornerbug)
-    if (titleBarColor.alpha() == 255) {
-        this->setOpaque(c->isMaximized());
-    } else {
-        this->setOpaque(false);
-    }
-
-    calculateWindowAndTitleBarShapes(true);
-    this->setBlurRegion(QRegion(m_windowPath->toFillPolygon().toPolygon()));
 }
 
 //________________________________________________________________
@@ -420,9 +395,6 @@ void Decoration::reconfigure()
 
     // borders
     recalculateBorders();
-
-    // shadow
-    createShadow();
 
     updateBlur();
 }
@@ -566,109 +538,15 @@ void Decoration::updateButtonsGeometry()
 //________________________________________________________________
 void Decoration::paint(QPainter *painter, const QRectF &repaintRegion)
 {
-    // TODO: optimize based on repaintRegion
-    auto c = window();
-    auto s = settings();
-
-    calculateWindowAndTitleBarShapes();
-
-    // paint background
-    if (!c->isShaded()) {
-        painter->fillRect(rect(), Qt::transparent);
-        painter->save();
-        painter->setRenderHint(QPainter::Antialiasing);
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(c->color(c->isActive() ? ColorGroup::Active : ColorGroup::Inactive, ColorRole::Frame));
-
-        // clip away the top part
-        if (!hideTitleBar())
-            painter->setClipRect(0, borderTop(), size().width(), size().height() - borderTop(), Qt::IntersectClip);
-
-        if (s->isAlphaChannelSupported())
-            painter->drawRoundedRect(rect(), m_internalSettings->cornerRadius(), m_internalSettings->cornerRadius());
-        else
-            painter->drawRect(rect());
-
-        painter->restore();
-    }
-
     if (!hideTitleBar())
         paintTitleBar(painter, repaintRegion);
-
-    if (hasBorders() && !s->isAlphaChannelSupported()) {
-        painter->save();
-        painter->setRenderHint(QPainter::Antialiasing, false);
-        painter->setBrush(Qt::NoBrush);
-        painter->setPen(c->isActive() ? c->color(ColorGroup::Active, ColorRole::TitleBar) : c->color(ColorGroup::Inactive, ColorRole::Foreground));
-
-        painter->drawRect(rect().adjusted(0, 0, -1, -1));
-        painter->restore();
-    }
 }
 
 //________________________________________________________________
 void Decoration::paintTitleBar(QPainter *painter, const QRectF &repaintRegion)
 {
     const auto c = window();
-
-    painter->save();
-    painter->setPen(Qt::NoPen);
-
-    // render a linear gradient on title area
-    if (c->isActive() && m_internalSettings->drawBackgroundGradient()) {
-        const QColor titleBarColor(this->titleBarColor());
-        QLinearGradient gradient(0, 0, 0, m_titleRect.height());
-        gradient.setColorAt(0.0, titleBarColor.lighter(120));
-        gradient.setColorAt(0.8, titleBarColor);
-        painter->setBrush(gradient);
-
-    } else {
-        painter->setBrush(titleBarColor());
-    }
-
     auto s = settings();
-
-    painter->drawPath(*m_titleBarPath);
-
-    // top highlight
-    if (qGray(this->titleBarColor().rgb()) < 130 && m_internalSettings->drawHighlight()) {
-        if (isMaximized() || !s->isAlphaChannelSupported()) {
-            painter->setPen(QColor(255, 255, 255, 30));
-            painter->drawLine(m_titleRect.topLeft(), m_titleRect.topRight());
-
-        } else if (!c->isShaded()) {
-            QRect copy(m_titleRect.adjusted(isLeftEdge() ? -m_internalSettings->cornerRadius() : 0,
-                                            isTopEdge() ? -m_internalSettings->cornerRadius() : 0,
-                                            isRightEdge() ? m_internalSettings->cornerRadius() : 0,
-                                            m_internalSettings->cornerRadius()));
-
-            QPixmap pix = QPixmap(copy.width(), copy.height());
-            pix.fill(Qt::transparent);
-
-            QPainter p(&pix);
-            p.setRenderHint(QPainter::Antialiasing);
-            p.setPen(Qt::NoPen);
-            p.setBrush(QColor(255, 255, 255, 30));
-            p.drawRoundedRect(copy, m_internalSettings->cornerRadius(), m_internalSettings->cornerRadius());
-
-            p.setBrush(Qt::black);
-            p.setCompositionMode(QPainter::CompositionMode_DestinationOut);
-            p.drawRoundedRect(copy.adjusted(0, 1, 0, 0), m_internalSettings->cornerRadius(), m_internalSettings->cornerRadius());
-
-            painter->drawPixmap(copy, pix);
-        }
-    }
-
-    const QColor outlineColor(this->outlineColor());
-    if (!c->isShaded() && outlineColor.isValid()) {
-        // outline
-        painter->setRenderHint(QPainter::Antialiasing, false);
-        painter->setBrush(Qt::NoBrush);
-        painter->setPen(outlineColor);
-        painter->drawLine(m_titleRect.bottomLeft(), m_titleRect.bottomRight());
-    }
-
-    painter->restore();
 
     // draw caption
     painter->setFont(s->font());
@@ -760,77 +638,6 @@ QPair<QRectF, Qt::Alignment> Decoration::captionRect() const
     }
 }
 
-//________________________________________________________________
-void Decoration::createShadow()
-{
-    if (!g_sShadow || g_shadowSizeEnum != m_internalSettings->shadowSize() || g_shadowStrength != m_internalSettings->shadowStrength()
-        || g_shadowColor != m_internalSettings->shadowColor()) {
-        g_shadowSizeEnum = m_internalSettings->shadowSize();
-        g_shadowStrength = m_internalSettings->shadowStrength();
-        g_shadowColor = m_internalSettings->shadowColor();
-
-        const CompositeShadowParams params = lookupShadowParams(g_shadowSizeEnum);
-        if (params.isNone()) {
-            g_sShadow.reset();
-            setShadow(g_sShadow);
-            return;
-        }
-
-        auto withOpacity = [](const QColor &color, qreal opacity) -> QColor {
-            QColor c(color);
-            c.setAlphaF(opacity);
-            return c;
-        };
-
-        const QSize boxSize =
-            BoxShadowRenderer::calculateMinimumBoxSize(params.shadow1.radius).expandedTo(BoxShadowRenderer::calculateMinimumBoxSize(params.shadow2.radius));
-
-        BoxShadowRenderer shadowRenderer;
-        shadowRenderer.setBorderRadius(m_internalSettings->cornerRadius() + 0.5);
-        shadowRenderer.setBoxSize(boxSize);
-
-        const qreal strength = static_cast<qreal>(g_shadowStrength) / 255.0;
-        shadowRenderer.addShadow(params.shadow1.offset, params.shadow1.radius, withOpacity(g_shadowColor, params.shadow1.opacity * strength));
-        shadowRenderer.addShadow(params.shadow2.offset, params.shadow2.radius, withOpacity(g_shadowColor, params.shadow2.opacity * strength));
-
-        QImage shadowTexture = shadowRenderer.render();
-
-        QPainter painter(&shadowTexture);
-        painter.setRenderHint(QPainter::Antialiasing);
-
-        const QRect outerRect = shadowTexture.rect();
-
-        QRect boxRect(QPoint(0, 0), boxSize);
-        boxRect.moveCenter(outerRect.center());
-
-        const QMargins padding = QMargins(boxRect.left() - outerRect.left() - Metrics::Shadow_Overlap - params.offset.x(),
-                                          boxRect.top() - outerRect.top() - Metrics::Shadow_Overlap - params.offset.y(),
-                                          outerRect.right() - boxRect.right() - Metrics::Shadow_Overlap + params.offset.x(),
-                                          outerRect.bottom() - boxRect.bottom() - Metrics::Shadow_Overlap + params.offset.y());
-        const QRect innerRect = outerRect - padding;
-
-        // Draw outline.
-        painter.setPen(withOpacity(g_shadowColor, 0.4 * strength));
-        painter.setBrush(Qt::NoBrush);
-        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter.drawRoundedRect(innerRect, m_internalSettings->cornerRadius() - 0.5, m_internalSettings->cornerRadius() - 0.5);
-
-        // Mask out inner rect.
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(Qt::black);
-        painter.setCompositionMode(QPainter::CompositionMode_DestinationOut);
-        painter.drawRoundedRect(innerRect, m_internalSettings->cornerRadius() + 0.5, m_internalSettings->cornerRadius() + 0.5);
-
-        painter.end();
-
-        g_sShadow = std::make_shared<KDecoration3::DecorationShadow>();
-        g_sShadow->setPadding(padding);
-        g_sShadow->setInnerShadowRect(QRect(outerRect.center(), QSize(1, 1)));
-        g_sShadow->setShadow(shadowTexture);
-    }
-
-    setShadow(g_sShadow);
-}
 } // namespace
 
 #include "glassdecoration.moc"

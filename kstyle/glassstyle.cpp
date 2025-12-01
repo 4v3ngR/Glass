@@ -266,11 +266,12 @@ void Style::polish(QWidget *widget)
         return;
 
     QPalette palette = widget->palette();
+
     QColor color = palette.color(QPalette::Window);
     color.setAlpha(0.0);
-    palette.setColor(QPalette::Active, QPalette::Window, color);
-    palette.setColor(QPalette::Inactive, QPalette::Window, color);
-    palette.setColor(QPalette::Disabled, QPalette::Window, color);
+
+    palette.setColor(QPalette::Window, color);
+    palette.setColor(QPalette::NoRole, color);
 
     widget->setPalette(palette);
 
@@ -1107,9 +1108,8 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
         QPalette palette = widget->palette();
         QColor color = palette.color(QPalette::Window);
         color.setAlpha(0.0);
-        palette.setColor(QPalette::Active, QPalette::Window, color);
-        palette.setColor(QPalette::Inactive, QPalette::Window, color);
-        palette.setColor(QPalette::Disabled, QPalette::Window, color);
+        palette.setColor(QPalette::Window, color);
+        palette.setColor(QPalette::NoRole, color);
 
         ((QWidget *)widget)->setPalette(palette);
     }
