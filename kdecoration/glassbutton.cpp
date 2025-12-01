@@ -161,12 +161,13 @@ void Button::drawIcon(QPainter *painter) const
     this makes all further rendering and scaling simpler
     all further rendering is performed inside QRect( 0, 0, 18, 18 )
     */
+
     const QRectF rect = geometry().marginsRemoved(m_padding);
     painter->translate(rect.topLeft());
 
     const qreal width(rect.width());
     painter->scale(width / 20, width / 20);
-    painter->translate(1, 1);
+    painter->translate(0, 1);
 
     // render background
     const QColor backgroundColor(this->backgroundColor());

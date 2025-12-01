@@ -541,8 +541,11 @@ void Decoration::updateButtonsGeometry()
 //________________________________________________________________
 void Decoration::paint(QPainter *painter, const QRectF &repaintRegion)
 {
-    if (!hideTitleBar())
+    if (!hideTitleBar()) {
+        painter->save();
         paintTitleBar(painter, repaintRegion);
+        painter->restore();
+    }
 }
 
 //________________________________________________________________
@@ -552,6 +555,7 @@ void Decoration::paintTitleBar(QPainter *painter, const QRectF &repaintRegion)
     auto s = settings();
 
     // draw caption
+    painter->translate(0, 1);
     painter->setFont(s->font());
     painter->setPen(fontColor());
     const auto cR = captionRect();
