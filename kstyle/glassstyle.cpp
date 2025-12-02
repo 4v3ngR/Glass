@@ -284,49 +284,23 @@ void Style::polish(QWidget *widget)
     _splitterFactory->registerWidget(widget);
     _toolsAreaManager->registerWidget(widget);
 
-    // enable mouse over effects for all necessary widgets
-    QWidget *pw = widget->parentWidget();
-    if (qobject_cast<QAbstractButton *>(widget) || qobject_cast<QAbstractSlider *>(widget) || qobject_cast<QAbstractItemView *>(pw)
-        || widget->inherits("QSplitterHandle") || widget->inherits("QHeaderView") || widget->inherits("QSizeGrip")) {
-        widget->setAttribute(Qt::WA_Hover, true);
-    }
-
-    /*if( widget && qobject_cast<const QGroupBox*>( widget ) ) {
-        addEventFilter( widget );
-        widget->setProperty( "HOVER", false );
-    }*/
-
     // enforce translucency for drag and drop window
     if (widget->testAttribute(Qt::WA_X11NetWmWindowTypeDND) && _helper->compositingActive()) {
         widget->setAttribute(Qt::WA_TranslucentBackground);
         widget->clearMask();
     }
 
-    if ((qobject_cast<QToolBar *>(widget) || qobject_cast<QMenuBar *>(widget)) && _helper->titleBarColor(true).alphaF() * 100.0 < 100) {
-        // only accept top most widgets, besides the main window
-        if (!widget->isWindow() && widget->parentWidget()->isWindow()) {
-            // this is only valid if the window is opaque (but not forced), otherwise everything will be blurred
-            if (widget->palette().color(QPalette::Window).alpha() == 255 && !_isOpaque)
-                addEventFilter(widget);
-        }
-    }
-
-    _translucentWidgets.insert(widget);
-    widget->setAttribute(Qt::WA_NoSystemBackground, false);
-    widget->setAttribute(Qt::WA_TranslucentBackground);
-    widget->setAttribute(Qt::WA_StyledBackground);
-
     if (!_isKonsole) {
-        if (StyleConfigData::toolBarOpacity() < 100 || StyleConfigData::menuBarOpacity() < 100 || StyleConfigData::tabBarOpacity() < 100
-            || StyleConfigData::dolphinSidebarOpacity() < 100) {
-            _isBarsOpaque = true;
-        }
+        _translucentWidgets.insert(widget);
+        widget->setAttribute(Qt::WA_NoSystemBackground, false);
+        widget->setAttribute(Qt::WA_TranslucentBackground);
+        widget->setAttribute(Qt::WA_StyledBackground);
+
         widget->setAutoFillBackground(false);
         widget->setBackgroundRole(QPalette::Window);
         widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
         widget->setAttribute(Qt::WA_Hover, true);
         _blurHelper->registerWidget(widget, _isDolphin);
-        addEventFilter(widget);
     }
 
     // scrollarea polishing is somewhat complex. It is moved to a dedicated method
@@ -335,17 +309,24 @@ void Style::polish(QWidget *widget)
     if (auto itemView = qobject_cast<QAbstractItemView *>(widget)) {
         // enable mouse over effects in itemviews' viewport
         itemView->viewport()->setAttribute(Qt::WA_Hover);
+    }
 
-    } else if (auto groupBox = qobject_cast<QGroupBox *>(widget)) {
+    if (auto groupBox = qobject_cast<QGroupBox *>(widget)) {
         // checkable group boxes
         if (groupBox->isCheckable()) {
             groupBox->setAttribute(Qt::WA_Hover);
         }
-    } else if (qobject_cast<QAbstractButton *>(widget) && qobject_cast<QDockWidget *>(widget->parent())) {
+    }
+
+    if (qobject_cast<QAbstractButton *>(widget) && qobject_cast<QDockWidget *>(widget->parent())) {
         widget->setAttribute(Qt::WA_Hover);
-    } else if (qobject_cast<QAbstractButton *>(widget) && qobject_cast<QToolBox *>(widget->parent())) {
+    }
+
+    if (qobject_cast<QAbstractButton *>(widget) && qobject_cast<QToolBox *>(widget->parent())) {
         widget->setAttribute(Qt::WA_Hover);
-    } else if (qobject_cast<QFrame *>(widget) && widget->parent() && widget->parent()->inherits("KTitleWidget")) {
+    }
+
+    if (qobject_cast<QFrame *>(widget) && widget->parent() && widget->parent()->inherits("KTitleWidget")) {
         widget->setAutoFillBackground(false);
         if (!StyleConfigData::titleWidgetDrawFrame()) {
             widget->setBackgroundRole(QPalette::Window);
@@ -355,7 +336,9 @@ void Style::polish(QWidget *widget)
     if (qobject_cast<QScrollBar *>(widget)) {
         // remove opaque painting for scrollbars
         widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
-    } else if (auto toolButton = qobject_cast<QToolButton *>(widget)) {
+    }
+
+    if (auto toolButton = qobject_cast<QToolButton *>(widget)) {
         if (toolButton->autoRaise()) {
             // for flat toolbuttons, adjust foreground and background role accordingly
             widget->setBackgroundRole(QPalette::NoRole);
@@ -365,7 +348,9 @@ void Style::polish(QWidget *widget)
         if (widget->parentWidget() && widget->parentWidget()->parentWidget() && widget->parentWidget()->parentWidget()->inherits("Gwenview::SideBarGroup")) {
             widget->setProperty(PropertyNames::toolButtonAlignment, Qt::AlignLeft);
         }
-    } else if (qobject_cast<QDockWidget *>(widget)) {
+    }
+
+    if (qobject_cast<QDockWidget *>(widget)) {
         // add event filter on dock widgets
         // and alter palette
         widget->setContentsMargins(StyleConfigData::fancyMargins() ? 5 : Metrics::Frame_FrameWidth,
@@ -373,37 +358,43 @@ void Style::polish(QWidget *widget)
                                    StyleConfigData::fancyMargins() ? 5 : Metrics::Frame_FrameWidth,
                                    Metrics::Frame_FrameWidth);
         addEventFilter(widget);
+    }
 
-    } else if (qobject_cast<QMdiSubWindow *>(widget)) {
+    if (qobject_cast<QMdiSubWindow *>(widget)) {
         widget->setAutoFillBackground(false);
         addEventFilter(widget);
+    }
 
-    } else if (qobject_cast<QToolBox *>(widget)) {
+    if (qobject_cast<QToolBox *>(widget)) {
         widget->setBackgroundRole(QPalette::NoRole);
         widget->setAutoFillBackground(false);
+    }
 
-    } else if (widget->parentWidget() && widget->parentWidget()->parentWidget()
-               && qobject_cast<QToolBox *>(widget->parentWidget()->parentWidget()->parentWidget())) {
+    if (widget->parentWidget() && widget->parentWidget()->parentWidget() && qobject_cast<QToolBox *>(widget->parentWidget()->parentWidget()->parentWidget())) {
         widget->setBackgroundRole(QPalette::NoRole);
         widget->parentWidget()->setAutoFillBackground(false);
+    }
 
-    } else if (qobject_cast<QMenu *>(widget)) {
-        if (widget->testAttribute(Qt::WA_TranslucentBackground) && StyleConfigData::menuOpacity() < 100) {
-            _blurHelper->registerWidget(widget->window(), _isDolphin);
-        }
-    } else if (auto comboBox = qobject_cast<QComboBox *>(widget)) {
+    if (qobject_cast<QMenu *>(widget)) {
+        _blurHelper->registerWidget(widget->window(), _isDolphin);
+        _blurHelper->registerWidget(widget, _isDolphin);
+    }
+
+    if (auto comboBox = qobject_cast<QComboBox *>(widget)) {
         if (!hasParent(widget, "QWebView")) {
             auto itemView(comboBox->view());
             if (itemView && itemView->itemDelegate() && itemView->itemDelegate()->inherits("QComboBoxDelegate")) {
                 itemView->setItemDelegate(new GlassPrivate::ComboBoxItemDelegate(itemView));
             }
         }
-    } else if (qobject_cast<QMainWindow *>(widget)) {
-        widget->setAttribute(Qt::WA_StyledBackground);
-    } else if (qobject_cast<QDialogButtonBox *>(widget)) {
+    }
+
+    if (qobject_cast<QDialogButtonBox *>(widget)) {
         addEventFilter(widget);
         // opaque menubar / toolbar / tabbar register blur
-    } else if (_isBarsOpaque) {
+    }
+
+    if (_isBarsOpaque) {
         _blurHelper->registerWidget(widget->window(), _isDolphin);
     }
 
@@ -6351,11 +6342,11 @@ bool Style::drawHeaderSectionControl(const QStyleOption *option, QPainter *paint
         return true;
 
     const bool horizontal(headerOption->orientation == Qt::Horizontal);
-    const bool isFirst(horizontal && (headerOption->position == QStyleOptionHeader::Beginning));
-    // const bool isMiddle(horizontal && (headerOption->position == QStyleOptionHeader::Middle));
-    // const bool isLast(horizontal && (headerOption->position == QStyleOptionHeader::End));
-    // const bool isCorner(widget && widget->inherits("QTableCornerButton"));
     const bool reverseLayout(option->direction == Qt::RightToLeft);
+    const bool isFirst(horizontal && (headerOption->position == (reverseLayout ? QStyleOptionHeader::End : QStyleOptionHeader::Beginning)));
+    const bool isLast(horizontal && (headerOption->position == (reverseLayout ? QStyleOptionHeader::Beginning : QStyleOptionHeader::End)));
+    // const bool isMiddle(horizontal && (headerOption->position == QStyleOptionHeader::Middle));
+    // const bool isCorner(widget && widget->inherits("QTableCornerButton"));
 
     // update animation state
     _animations->headerViewEngine().updateState(widget, rect.topLeft(), mouseOver);
@@ -6390,6 +6381,19 @@ bool Style::drawHeaderSectionControl(const QStyleOption *option, QPainter *paint
         painter->drawRoundedRect(QRect(rect.topLeft().x(), rect.topLeft().y(), radius * 2, radius * 2), radius, radius);
         painter->drawRect(rect.topLeft().x(), rect.topLeft().y() + radius, rect.width(), rect.height() - radius);
         painter->drawRect(rect.topLeft().x() + radius, rect.topLeft().y(), rect.width() - radius, rect.height());
+        painter->setRenderHint(QPainter::Antialiasing, false);
+    } else if (isLast && horizontal) {
+        const int height = rect.bottomLeft().y() - rect.topLeft().y();
+        const int width = rect.topRight().x() - rect.topLeft().x();
+        const int minDim = qMin(width, height);
+        const int radius = qMin(minDim / 2, StyleConfigData::cornerRadius());
+
+        painter->setRenderHint(QPainter::Antialiasing, true);
+        painter->setBrush(color);
+        painter->setPen(Qt::NoPen);
+        painter->drawRoundedRect(QRect(rect.topRight().x() - radius * 2, rect.topLeft().y(), radius * 2, radius * 2), radius, radius);
+        painter->drawRect(rect.topLeft().x(), rect.topLeft().y() + radius, rect.width(), rect.height() - radius);
+        painter->drawRect(rect.topLeft().x(), rect.topLeft().y(), rect.width() - radius, rect.height());
         painter->setRenderHint(QPainter::Antialiasing, false);
     } else {
         painter->setRenderHint(QPainter::Antialiasing, false);
