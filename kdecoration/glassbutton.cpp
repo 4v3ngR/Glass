@@ -343,7 +343,7 @@ QColor Button::backgroundColor() const
         if (isPressed()) {
             switch (type()) {
             case DecorationButtonType::Close:
-                return c->color(ColorGroup::Warning, ColorRole::Foreground);
+                return QColorConstants::Red;
             case DecorationButtonType::Minimize:
                 return QColorConstants::Yellow;
             case DecorationButtonType::Maximize:
@@ -362,7 +362,7 @@ QColor Button::backgroundColor() const
 
         switch (type()) {
         case DecorationButtonType::Close:
-            color = c->color(ColorGroup::Warning, ColorRole::Foreground);
+            color = QColorConstants::Red;
             color.setAlpha(alpha);
             return color;
         case DecorationButtonType::Minimize:
