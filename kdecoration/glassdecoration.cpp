@@ -410,9 +410,9 @@ void Decoration::recalculateBorders()
     auto scale = c->nextScale();
 
     // left, right and bottom borders
-    const qreal left = isLeftEdge() ? 0 : borderSize(false, scale);
-    const qreal right = isRightEdge() ? 0 : borderSize(false, scale);
-    const qreal bottom = (c->isShaded() || isBottomEdge()) ? 0 : borderSize(true, scale);
+    const qreal left = borderSize(false, scale);
+    const qreal right = borderSize(false, scale);
+    const qreal bottom = borderSize(true, scale);
 
     qreal top = 0;
     if (hideTitleBar())
@@ -422,7 +422,7 @@ void Decoration::recalculateBorders()
         top += KDecoration3::snapToPixelGrid(std::max(fm.height(), buttonSize()), scale);
 
         // padding below
-        const int baseSize = s->smallSpacing();
+        const int baseSize = s->smallSpacing() * 2;
         top += KDecoration3::snapToPixelGrid(baseSize * Metrics::TitleBar_BottomMargin, scale);
 
         // padding above

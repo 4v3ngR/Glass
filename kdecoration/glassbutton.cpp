@@ -167,7 +167,7 @@ void Button::drawIcon(QPainter *painter) const
 
     const qreal width(rect.width());
     painter->scale(width / 20, width / 20);
-    painter->translate(0, 1);
+    painter->translate(0, 5);
 
     // render background
     const QColor backgroundColor(this->backgroundColor());
