@@ -333,11 +333,6 @@ void Style::polish(QWidget *widget)
         }
     }
 
-    if (qobject_cast<QScrollBar *>(widget)) {
-        // remove opaque painting for scrollbars
-        widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
-    }
-
     if (auto toolButton = qobject_cast<QToolButton *>(widget)) {
         if (toolButton->autoRaise()) {
             // for flat toolbuttons, adjust foreground and background role accordingly
@@ -360,8 +355,8 @@ void Style::polish(QWidget *widget)
         addEventFilter(widget);
     }
 
-    if (qobject_cast<QMdiSubWindow *>(widget)) {
-        widget->setAutoFillBackground(false);
+    if (qobject_cast<QMdiSubWindow *>(widget) || qobject_cast<QDialogButtonBox *>(widget)) {
+        // widget->setAutoFillBackground(false);
         addEventFilter(widget);
     }
 
@@ -387,11 +382,6 @@ void Style::polish(QWidget *widget)
                 itemView->setItemDelegate(new GlassPrivate::ComboBoxItemDelegate(itemView));
             }
         }
-    }
-
-    if (qobject_cast<QDialogButtonBox *>(widget)) {
-        addEventFilter(widget);
-        // opaque menubar / toolbar / tabbar register blur
     }
 
     if (_isBarsOpaque) {
@@ -8515,70 +8505,12 @@ void Style::setSurfaceFormat(QWidget *widget) const
     if (!widget)
         return;
 
-    widget->setAttribute(Qt::WA_TranslucentBackground);
-    return;
-
-    if (widget->testAttribute(Qt::WA_WState_Created) || widget->testAttribute(Qt::WA_TranslucentBackground) || widget->testAttribute(Qt::WA_NoSystemBackground)
-        || widget->autoFillBackground() // video players like kaffeine
-        || _translucentWidgets.contains(widget))
-        return;
-
-    if (widget->inherits("QTipLabel")) {
-        return;
-    } else {
-        switch (widget->windowFlags() & Qt::WindowType_Mask) {
-        case Qt::Window:
-        case Qt::Dialog:
-        case Qt::Popup:
-        case Qt::Sheet:
-            break;
-        default:
-            return;
-        }
-        if (widget->windowHandle() // too late
-            || widget->windowFlags().testFlag(Qt::FramelessWindowHint) || widget->windowFlags().testFlag(Qt::X11BypassWindowManagerHint)
-            || qobject_cast<QFrame *>(widget) // a floating frame, as in Filelight
-            || widget->windowType() == Qt::Desktop || widget->testAttribute(Qt::WA_PaintOnScreen) || widget->testAttribute(Qt::WA_X11NetWmWindowTypeDesktop)
-            || widget->inherits("KScreenSaver") || widget->inherits("QSplashScreen"))
-            return;
-
-        QWidget *p = widget->parentWidget();
-        if (p
-            && (/*!p->testAttribute(Qt::WA_WState_Created) // FIXME: too soon?
-              ||*/
-                qobject_cast<QMdiSubWindow *>(p))) // as in linguist
-        {
-            return;
-        }
-
-        if (QMainWindow *mw = qobject_cast<QMainWindow *>(widget)) {
-            /* it's possible that a main window is inside another one
-                (like FormPreviewView in linguist), in which case,
-                translucency could cause weird effects */
-            if (p)
-                return;
-            /* stylesheets with background can cause total transparency */
-            QString ss = mw->styleSheet();
-            if (!ss.isEmpty() && ss.contains("background"))
-                return;
-            if (QWidget *cw = mw->centralWidget()) {
-                if (cw->autoFillBackground())
-                    return;
-                ss = cw->styleSheet();
-                if (!ss.isEmpty() && ss.contains("background"))
-                    return; // as in smplayer
-            }
-        }
-    }
-
-    if (!_helper->compositingActive())
+    if (!widget || widget->testAttribute(Qt::WA_WState_Created) | widget->testAttribute(Qt::WA_TranslucentBackground)
+        || widget->testAttribute(Qt::WA_NoSystemBackground) || widget->autoFillBackground() // video players like kaffeine
+        || widget->inherits("QTipLabel") || _translucentWidgets.contains(widget))
         return;
 
     widget->setAttribute(Qt::WA_TranslucentBackground);
-
-    /* distinguish forced translucency from hard-coded translucency */
-    // forcedTranslucency_.insert(widget);
-    // connect(widget, &QObject::destroyed, this, &Style::noTranslucency); // needed?
 }
 
 //____________________________________________________________________
