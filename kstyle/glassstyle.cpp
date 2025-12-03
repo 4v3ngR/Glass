@@ -290,12 +290,12 @@ void Style::polish(QWidget *widget)
         widget->clearMask();
     }
 
+    widget->setAttribute(Qt::WA_NoSystemBackground, false);
+    widget->setAttribute(Qt::WA_TranslucentBackground);
+    widget->setAttribute(Qt::WA_StyledBackground);
+
     if (!_isKonsole) {
         _translucentWidgets.insert(widget);
-        widget->setAttribute(Qt::WA_NoSystemBackground, false);
-        widget->setAttribute(Qt::WA_TranslucentBackground);
-        widget->setAttribute(Qt::WA_StyledBackground);
-
         widget->setAutoFillBackground(false);
         widget->setBackgroundRole(QPalette::Window);
         widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
