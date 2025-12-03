@@ -866,7 +866,7 @@
          <item>
           <widget class="QCheckBox" name="_transparentDolphinView">
            <property name="text">
-            <string>Transparent Dolphin view</string>
+            <string>Translucent Dolphin view</string>
            </property>
           </widget>
          </item>
