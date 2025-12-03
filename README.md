@@ -18,8 +18,9 @@ This is a preview using an unmodified breeze colorscheme.
 - [ ] Remove configuration options that no longer do anything
 
 ### WM
-- [ ] Make the window decorations transparent
-- [ ] Be able to replace my aurorae WM theme (pictured above)
+- [X] Make the window decorations transparent
+- [X] Be able to replace my aurorae WM theme (pictured above)
+- [ ] Make new button images (more like the macOS images)
 
 ## Installation
 
