@@ -424,9 +424,6 @@ void Decoration::recalculateBorders()
         // padding below
         const int baseSize = s->smallSpacing() * 2;
         top += KDecoration3::snapToPixelGrid(baseSize * Metrics::TitleBar_BottomMargin, scale);
-
-        // padding above
-        top += KDecoration3::snapToPixelGrid(baseSize * Metrics::TitleBar_TopMargin, scale);
     }
 
     setBorders(QMarginsF(left, top, right, bottom));
