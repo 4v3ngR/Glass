@@ -157,13 +157,11 @@ void Button::drawIcon(QPainter *painter) const
     painter->setRenderHints(QPainter::Antialiasing);
 
     const QRectF rect = geometry().marginsRemoved(m_padding);
+    const qreal width(rect.width());
+
     painter->translate(rect.topLeft());
 
-    const qreal width(rect.width());
     painter->scale(width / 40, width / 40);
-
-    if (rect.height() < 40)
-        painter->translate(0, 20 - rect.height() / 2);
 
     // render background
     const QColor backgroundColor(this->backgroundColor());

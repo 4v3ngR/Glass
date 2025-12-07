@@ -589,7 +589,7 @@ int Decoration::buttonSize() const
 //________________________________________________________________
 int Decoration::captionHeight() const
 {
-    return hideTitleBar() ? borderTop() : borderTop() - settings()->smallSpacing() * (Metrics::TitleBar_BottomMargin + Metrics::TitleBar_TopMargin) - 1;
+    return hideTitleBar() ? borderTop() : buttonSize();
 }
 
 //________________________________________________________________
