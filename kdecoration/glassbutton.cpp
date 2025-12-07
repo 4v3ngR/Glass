@@ -156,25 +156,21 @@ void Button::drawIcon(QPainter *painter) const
 {
     painter->setRenderHints(QPainter::Antialiasing);
 
-    /*
-    scale painter so that its window matches QRect( -1, -1, 20, 20 )
-    this makes all further rendering and scaling simpler
-    all further rendering is performed inside QRect( 0, 0, 18, 18 )
-    */
-
     const QRectF rect = geometry().marginsRemoved(m_padding);
     painter->translate(rect.topLeft());
 
     const qreal width(rect.width());
-    painter->scale(width / 20, width / 20);
-    painter->translate(0, 5);
+    painter->scale(width / 40, width / 40);
+
+    if (rect.height() < 40)
+        painter->translate(0, 20 - rect.height() / 2);
 
     // render background
     const QColor backgroundColor(this->backgroundColor());
     if (backgroundColor.isValid()) {
         painter->setPen(Qt::NoPen);
         painter->setBrush(backgroundColor);
-        painter->drawEllipse(QRectF(0, 0, 18, 18));
+        painter->drawEllipse(QRectF(0, 0, 36, 36));
     }
 
     // render mark
@@ -184,7 +180,7 @@ void Button::drawIcon(QPainter *painter) const
         QPen pen(foregroundColor);
         pen.setCapStyle(Qt::RoundCap);
         pen.setJoinStyle(Qt::MiterJoin);
-        pen.setWidthF(PenWidth::Symbol * qMax((qreal)1.0, 20 / width));
+        pen.setWidthF(PenWidth::Symbol * qMax((qreal)1.0, 40 / width));
 
         painter->setPen(pen);
         painter->setBrush(Qt::NoBrush);
@@ -225,7 +221,7 @@ painter->drawPolyline(QVector<QPointF>{QPointF(4, 11), QPointF(9, 6), QPointF(14
 
             if (isChecked()) {
                 // outer ring
-                painter->drawEllipse(QRectF(3, 3, 12, 12));
+                painter->drawEllipse(QRectF(6, 6, 24, 24));
 
                 // center dot
                 QColor backgroundColor(this->backgroundColor());
@@ -236,61 +232,61 @@ painter->drawPolyline(QVector<QPointF>{QPointF(4, 11), QPointF(9, 6), QPointF(14
 
                 if (backgroundColor.isValid()) {
                     painter->setBrush(backgroundColor);
-                    painter->drawEllipse(QRectF(8, 8, 2, 2));
+                    painter->drawEllipse(QRectF(16, 16, 4, 4));
                 }
 
             } else {
-                painter->drawPolygon(QVector<QPointF>{QPointF(6.5, 8.5), QPointF(12, 3), QPointF(15, 6), QPointF(9.5, 11.5)});
+                painter->drawPolygon(QVector<QPointF>{QPointF(13, 13), QPointF(24, 6), QPointF(30, 12), QPointF(19, 22)});
 
                 painter->setPen(pen);
-                painter->drawLine(QPointF(5.5, 7.5), QPointF(10.5, 12.5));
-                painter->drawLine(QPointF(12, 6), QPointF(4.5, 13.5));
+                painter->drawLine(QPointF(11, 15), QPointF(21, 25));
+                painter->drawLine(QPointF(24, 12), QPointF(9, 27));
             }
             break;
         }
 
         case DecorationButtonType::Shade: {
             if (isChecked()) {
-                painter->drawLine(QPointF(4, 5.5), QPointF(14, 5.5));
-                painter->drawPolyline(QVector<QPointF>{QPointF(4, 8), QPointF(9, 13), QPointF(14, 8)});
+                painter->drawLine(QPointF(8, 11), QPointF(28, 11));
+                painter->drawPolyline(QVector<QPointF>{QPointF(8, 16), QPointF(18, 26), QPointF(28, 16)});
 
             } else {
-                painter->drawLine(QPointF(4, 5.5), QPointF(14, 5.5));
-                painter->drawPolyline(QVector<QPointF>{QPointF(4, 13), QPointF(9, 8), QPointF(14, 13)});
+                painter->drawLine(QPointF(8, 11), QPointF(28, 11));
+                painter->drawPolyline(QVector<QPointF>{QPointF(8, 26), QPointF(18, 16), QPointF(28, 26)});
             }
 
             break;
         }
 
         case DecorationButtonType::KeepBelow: {
-            painter->drawPolyline(QVector<QPointF>{QPointF(4, 5), QPointF(9, 10), QPointF(14, 5)});
+            painter->drawPolyline(QVector<QPointF>{QPointF(8, 10), QPointF(18, 20), QPointF(28, 10)});
 
-            painter->drawPolyline(QVector<QPointF>{QPointF(4, 9), QPointF(9, 14), QPointF(14, 9)});
+            painter->drawPolyline(QVector<QPointF>{QPointF(8, 18), QPointF(18, 28), QPointF(28, 18)});
             break;
         }
 
         case DecorationButtonType::KeepAbove: {
-            painter->drawPolyline(QVector<QPointF>{QPointF(4, 9), QPointF(9, 4), QPointF(14, 9)});
+            painter->drawPolyline(QVector<QPointF>{QPointF(8, 18), QPointF(18, 8), QPointF(28, 18)});
 
-            painter->drawPolyline(QVector<QPointF>{QPointF(4, 13), QPointF(9, 8), QPointF(14, 13)});
+            painter->drawPolyline(QVector<QPointF>{QPointF(8, 26), QPointF(18, 16), QPointF(28, 26)});
             break;
         }
 
         case DecorationButtonType::ApplicationMenu: {
-            painter->drawRect(QRectF(3.5, 4.5, 11, 1));
-            painter->drawRect(QRectF(3.5, 8.5, 11, 1));
-            painter->drawRect(QRectF(3.5, 12.5, 11, 1));
+            painter->drawRect(QRectF(7, 9, 22, 2));
+            painter->drawRect(QRectF(7, 17, 22, 2));
+            painter->drawRect(QRectF(7, 25, 22, 2));
             break;
         }
 
         case DecorationButtonType::ContextHelp: {
             QPainterPath path;
-            path.moveTo(5, 6);
-            path.arcTo(QRectF(5, 3.5, 8, 5), 180, -180);
-            path.cubicTo(QPointF(12.5, 9.5), QPointF(9, 7.5), QPointF(9, 11.5));
+            path.moveTo(10, 12);
+            path.arcTo(QRectF(10, 7, 16, 10), 180, -180);
+            path.cubicTo(QPointF(25, 19), QPointF(18, 15), QPointF(18, 23));
             painter->drawPath(path);
 
-            painter->drawRect(QRectF(9, 15, 0.5, 0.5));
+            painter->drawRect(QRectF(18, 30, 1, 1));
 
             break;
         }
