@@ -333,7 +333,7 @@ QColor Button::backgroundColor() const
 
     auto c = d->window();
 
-    if (c->isActive()) {
+    if (c->isActive() || isHovered()) {
         if (isPressed()) {
             switch (type()) {
             case DecorationButtonType::Close:
