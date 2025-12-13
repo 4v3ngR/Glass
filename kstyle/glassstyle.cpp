@@ -8505,11 +8505,14 @@ void Style::setSurfaceFormat(QWidget *widget) const
     if (!widget)
         return;
 
+    /* As the comment above states, if we're late, setting WA_TranslucentBackground
+     * doesn't do anything, so let's just always set it and shrug.
+     *
     if (!widget || widget->testAttribute(Qt::WA_WState_Created) | widget->testAttribute(Qt::WA_TranslucentBackground)
         || widget->testAttribute(Qt::WA_NoSystemBackground) || widget->autoFillBackground() // video players like kaffeine
         || widget->inherits("QTipLabel") || _translucentWidgets.contains(widget))
         return;
-
+    */
     widget->setAttribute(Qt::WA_TranslucentBackground);
 }
 
