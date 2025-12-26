@@ -314,9 +314,6 @@ void Style::polish(QWidget *widget)
                 if (quickWidget) {
                     quickWidget->setClearColor(Qt::transparent);
                 }
-
-                widget->setAttribute(Qt::WA_TranslucentBackground);
-                widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
                 break;
             }
             parent = parent->parentWidget();
