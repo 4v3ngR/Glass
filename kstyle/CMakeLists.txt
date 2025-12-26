@@ -59,11 +59,20 @@ kconfig_add_kcfg_files(glass_PART_SRCS glassstyleconfigdata.kcfgc)
 
 add_library(glass${QT_MAJOR_VERSION} MODULE ${glass_PART_SRCS})
 
+################# find Qt modules #################
+if(QT_MAJOR_VERSION EQUAL 6)
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick QuickWidgets)
+else()
+    find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Quick QuickWidgets)
+endif()
+
 target_link_libraries(glass${QT_MAJOR_VERSION}
     Qt${QT_MAJOR_VERSION}::Core
     Qt${QT_MAJOR_VERSION}::Gui
     Qt${QT_MAJOR_VERSION}::Widgets
     Qt${QT_MAJOR_VERSION}::DBus
+    Qt${QT_MAJOR_VERSION}::Quick
+		Qt${QT_MAJOR_VERSION}::QuickWidgets
 )
 
 if( GLASS_HAVE_QTQUICK )

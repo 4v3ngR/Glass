@@ -57,6 +57,7 @@
 #include <QMenuBar>
 #include <QPainter>
 #include <QPushButton>
+#include <QQuickWidget>
 #include <QRadioButton>
 #include <QScrollBar>
 #include <QSplitterHandle>
@@ -301,6 +302,25 @@ void Style::polish(QWidget *widget)
         widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
         widget->setAttribute(Qt::WA_Hover, true);
         _blurHelper->registerWidget(widget, _isDolphin);
+    }
+
+    // taken from https://github.com/Bali10050/Darkly/commit/fb851abd8d41b5c23e18bb1198a8c2e526f45614
+    // It is upon the shoulders of giants I stand
+    if (widget->inherits("QQuickWidget")) {
+        QWidget *parent = widget->parentWidget();
+        while (parent) {
+            if (parent->inherits("FocusHackWidget")) {
+                auto quickWidget = qobject_cast<QQuickWidget *>(widget);
+                if (quickWidget) {
+                    quickWidget->setClearColor(Qt::transparent);
+                }
+
+                widget->setAttribute(Qt::WA_TranslucentBackground);
+                widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
+                break;
+            }
+            parent = parent->parentWidget();
+        }
     }
 
     // scrollarea polishing is somewhat complex. It is moved to a dedicated method
