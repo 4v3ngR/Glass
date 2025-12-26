@@ -70,7 +70,6 @@
 #include <QToolButton>
 #include <QTreeView>
 #include <QWidgetAction>
-#include <QWindow>
 
 #if GLASS_HAVE_QTQUICK
 #include <QQuickWindow>
@@ -267,12 +266,18 @@ void Style::polish(QWidget *widget)
         return;
 
     QPalette palette = widget->palette();
-
-    QColor color = palette.color(QPalette::Window);
-    color.setAlpha(0.0);
+    QColor color = Qt::transparent;
 
     palette.setColor(QPalette::Window, color);
-    palette.setColor(QPalette::NoRole, color);
+
+    // fixes menu highlight when view background has alpha and highligh is from wallpaper
+    // or custom color - still does not work for qtquick apps
+    color = palette.color(QPalette::Highlight);
+    color.setAlpha(255);
+    palette.setColor(QPalette::Highlight, color);
+    color = palette.color(QPalette::HighlightedText);
+    color.setAlpha(255);
+    palette.setColor(QPalette::HighlightedText, color);
 
     widget->setPalette(palette);
 
@@ -293,7 +298,6 @@ void Style::polish(QWidget *widget)
 
     widget->setAttribute(Qt::WA_NoSystemBackground, false);
     widget->setAttribute(Qt::WA_TranslucentBackground);
-    widget->setAttribute(Qt::WA_StyledBackground);
 
     if (!_isKonsole) {
         _translucentWidgets.insert(widget);
@@ -313,8 +317,9 @@ void Style::polish(QWidget *widget)
                 auto quickWidget = qobject_cast<QQuickWidget *>(widget);
                 if (quickWidget) {
                     quickWidget->setClearColor(Qt::transparent);
+                    quickWidget->setAttribute(Qt::WA_AlwaysStackOnTop);
+                    break;
                 }
-                break;
             }
             parent = parent->parentWidget();
         }
@@ -988,16 +993,6 @@ QStyle::SubControl Style::hitTestComplexControl(ComplexControl control, const QS
 //______________________________________________________________
 void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const
 {
-    if (widget) {
-        QPalette palette = widget->palette();
-        QColor color = palette.color(QPalette::Window);
-        color.setAlpha(0.0);
-        palette.setColor(QPalette::Window, color);
-        palette.setColor(QPalette::NoRole, color);
-
-        ((QWidget *)widget)->setPalette(palette);
-    }
-
     StylePrimitive fcn;
     switch (element) {
     case PE_PanelButtonCommand:
