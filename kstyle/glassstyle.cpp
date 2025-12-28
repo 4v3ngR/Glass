@@ -1691,7 +1691,7 @@ bool Style::eventFilterDockWidget(QDockWidget *dockWidget, QEvent *event)
 
         } else if (StyleConfigData::dockWidgetDrawFrame()
                    && (dockWidget->features() & (QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable))) {
-            QColor c = background;
+            QColor c = palette.color(QPalette::Base);
             // Always draw with some opacity if the user wishes for a dock frame
             if (c.alpha() == 0) {
                 c.setAlphaF(0.25);
