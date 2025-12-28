@@ -267,7 +267,7 @@ void Style::polish(QWidget *widget)
 
     QPalette palette = widget->palette();
     QColor color = Qt::transparent;
-
+    // TODO: make this a configuration option
     palette.setColor(QPalette::Window, color);
 
     // fixes menu highlight when view background has alpha and highligh is from wallpaper
@@ -1691,7 +1691,12 @@ bool Style::eventFilterDockWidget(QDockWidget *dockWidget, QEvent *event)
 
         } else if (StyleConfigData::dockWidgetDrawFrame()
                    && (dockWidget->features() & (QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable))) {
-            _helper->renderFrame(&painter, rect, background, windowActive);
+            QColor c = background;
+            // Always draw with some opacity if the user wishes for a dock frame
+            if (c.alpha() == 0) {
+                c.setAlphaF(0.25);
+            }
+            _helper->renderFrame(&painter, rect, c, windowActive);
 
         } else {
             if (_isDolphin && dockWidget->inherits("DolphinDockWidget") && _translucentWidgets.contains(dockWidget->window())) {
