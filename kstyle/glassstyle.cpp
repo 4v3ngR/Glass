@@ -265,27 +265,6 @@ void Style::polish(QWidget *widget)
     if (!widget)
         return;
 
-    QPalette palette = widget->palette();
-    QColor color = palette.color(QPalette::Window);
-
-    // leave it to the color scheme to set the window alpha - at least until
-    // this is configurable
-    if (color.alpha() == 0) {
-        color = Qt::transparent;
-        palette.setColor(QPalette::Window, Qt::transparent);
-    }
-
-    // fixes menu highlight when view background has alpha and highligh is from wallpaper
-    // or custom color - still does not work for qtquick apps
-    color = palette.color(QPalette::Highlight);
-    color.setAlpha(127);
-    palette.setColor(QPalette::Highlight, color);
-    color = palette.color(QPalette::HighlightedText);
-    color.setAlpha(255);
-    palette.setColor(QPalette::HighlightedText, color);
-
-    widget->setPalette(palette);
-
     // register widget to animations
     _animations->registerWidget(widget);
     _windowManager->registerWidget(widget);
@@ -2016,6 +1995,27 @@ void Style::loadConfiguration()
     // widget explorer
     _widgetExplorer->setEnabled(StyleConfigData::widgetExplorerEnabled());
     _widgetExplorer->setDrawWidgetRects(StyleConfigData::drawWidgetRects());
+
+    QPalette palette = QApplication::palette();
+    QColor color = palette.color(QPalette::Window);
+
+    // leave it to the color scheme to set the window alpha - at least until
+    // this is configurable
+    if (color.alpha() == 0) {
+        color = Qt::transparent;
+        palette.setColor(QPalette::Window, Qt::transparent);
+    }
+
+    // fixes menu highlight when view background has alpha and highligh is from wallpaper
+    // or custom color - still does not work for qtquick apps
+    color = palette.color(QPalette::Highlight);
+    color.setAlpha(127);
+    palette.setColor(QPalette::Highlight, color);
+    color = palette.color(QPalette::HighlightedText);
+    color.setAlpha(255);
+    palette.setColor(QPalette::HighlightedText, color);
+
+    QApplication::setPalette(palette);
 }
 
 //___________________________________________________________________________________________________________________
