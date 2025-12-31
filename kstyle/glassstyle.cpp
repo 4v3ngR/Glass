@@ -266,14 +266,18 @@ void Style::polish(QWidget *widget)
         return;
 
     QPalette palette = widget->palette();
-    palette.setColor(QPalette::Window, Qt::transparent);
-    if (!_isDolphin) {
-        palette.setColor(QPalette::Base, Qt::transparent);
+    QColor color = palette.color(QPalette::Window);
+
+    // leave it to the color scheme to set the window alpha - at least until
+    // this is configurable
+    if (color.alpha() == 0) {
+        color = Qt::transparent;
+        palette.setColor(QPalette::Window, Qt::transparent);
     }
 
     // fixes menu highlight when view background has alpha and highligh is from wallpaper
     // or custom color - still does not work for qtquick apps
-    QColor color = palette.color(QPalette::Highlight);
+    color = palette.color(QPalette::Highlight);
     color.setAlpha(127);
     palette.setColor(QPalette::Highlight, color);
     color = palette.color(QPalette::HighlightedText);
