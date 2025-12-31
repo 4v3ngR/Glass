@@ -292,6 +292,13 @@ void Style::polish(QWidget *widget)
         _blurHelper->registerWidget(widget, _isDolphin);
     }
 
+    // Dolphin always has a transparent window color
+    if (_isDolphin) {
+        QPalette palette = QApplication::palette();
+        palette.setColor(QPalette::Window, Qt::transparent);
+        QApplication::setPalette(palette);
+    }
+
     // taken from https://github.com/Bali10050/Darkly/commit/fb851abd8d41b5c23e18bb1198a8c2e526f45614
     // It is upon the shoulders of giants I stand
     if (widget->inherits("QQuickWidget")) {
