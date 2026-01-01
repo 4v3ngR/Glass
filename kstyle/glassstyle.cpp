@@ -2012,7 +2012,7 @@ void Style::loadConfiguration()
     // this is configurable
     if (appName == "spectacle") {
         color.setAlpha(127);
-    } else if (color.alpha() == 0) {
+    } else if (color.alpha() == 0 || color.alpha() == 255) {
         color = Qt::transparent;
         palette.setColor(QPalette::Window, Qt::transparent);
     }
