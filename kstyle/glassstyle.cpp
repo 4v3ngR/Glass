@@ -3642,11 +3642,7 @@ bool Style::drawFramePrimitive(const QStyleOption *option, QPainter *painter, co
     // from kvantum
     if (_isDolphin) {
         if (QWidget *pw = widget->parentWidget()) {
-            if (StyleConfigData::transparentDolphinView()
-                // not renaming area
-                && !qobject_cast<QAbstractScrollArea *>(pw)
-                // only Dolphin's view
-                && QString(pw->metaObject()->className()).startsWith("Dolphin")) {
+            if (!qobject_cast<QAbstractScrollArea *>(pw) && QString(pw->metaObject()->className()).startsWith("Dolphin")) {
                 if (widget->property("VISIBLE-SEPARATORS").toBool()) {
                     QRect copy = rect.adjusted(12, 0, -12, 0);
                     painter->setRenderHint(QPainter::Antialiasing);
@@ -3656,9 +3652,11 @@ bool Style::drawFramePrimitive(const QStyleOption *option, QPainter *painter, co
                     painter->drawLine(copy.bottomLeft(), copy.bottomRight());
                 }
 
-                QColor background = isTitleWidget ? palette.color(widget->backgroundRole()) : palette.color(QPalette::Base);
-                background.setAlphaF(0.75); // TODO: make the opacity level configurable
-                _helper->renderFrame(painter, option->rect, background, windowActive, enabled);
+                if (!StyleConfigData::transparentDolphinView()) {
+                    QColor background = isTitleWidget ? palette.color(widget->backgroundRole()) : palette.color(QPalette::Base);
+                    background.setAlphaF(0.75); // TODO: make the opacity level configurable
+                    _helper->renderFrame(painter, option->rect, background, windowActive, enabled);
+                }
                 return true;
             }
         }
