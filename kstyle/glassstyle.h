@@ -613,6 +613,8 @@ private:
 
     // blur is required for toolbar, menubar, tabbar if opaque
     bool _isBarsOpaque = false;
+
+    QPalette _palette;
 };
 
 //_________________________________________________________________________
