@@ -2003,12 +2003,16 @@ void Style::loadConfiguration()
     _widgetExplorer->setEnabled(StyleConfigData::widgetExplorerEnabled());
     _widgetExplorer->setDrawWidgetRects(StyleConfigData::drawWidgetRects());
 
+    const auto appName = QApplication::applicationName();
+
     QPalette palette = QApplication::palette();
     QColor color = palette.color(QPalette::Window);
 
     // leave it to the color scheme to set the window alpha - at least until
     // this is configurable
-    if (color.alpha() == 0) {
+    if (appName == "spectacle") {
+        color.setAlpha(127);
+    } else if (color.alpha() == 0) {
         color = Qt::transparent;
         palette.setColor(QPalette::Window, Qt::transparent);
     }
