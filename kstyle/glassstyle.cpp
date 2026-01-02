@@ -302,20 +302,10 @@ void Style::polish(QWidget *widget)
     }
 
     // taken from https://github.com/Bali10050/Darkly/commit/fb851abd8d41b5c23e18bb1198a8c2e526f45614
-    // It is upon the shoulders of giants I stand
-    if (widget->inherits("QQuickWidget")) {
-        QWidget *parent = widget->parentWidget();
-        while (parent) {
-            if (parent->inherits("FocusHackWidget")) {
-                auto quickWidget = qobject_cast<QQuickWidget *>(widget);
-                if (quickWidget) {
-                    quickWidget->setClearColor(Qt::transparent);
-                    quickWidget->setAttribute(Qt::WA_AlwaysStackOnTop);
-                    break;
-                }
-            }
-            parent = parent->parentWidget();
-        }
+    auto quickWidget = qobject_cast<QQuickWidget *>(widget);
+    if (quickWidget) {
+        quickWidget->setClearColor(Qt::transparent);
+        quickWidget->setAttribute(Qt::WA_AlwaysStackOnTop);
     }
 
     // scrollarea polishing is somewhat complex. It is moved to a dedicated method
@@ -3723,9 +3713,12 @@ bool Style::drawFrameLineEditPrimitive(const QStyleOption *option, QPainter *pai
 
     // store window state
     const bool windowActive(widget && widget->isActiveWindow());
+    auto outline(palette.color(QPalette::Highlight));
 
     auto background = palette.color(QPalette::Base);
-    auto outline(palette.color(QPalette::Highlight));
+    if (background.alpha() == 0) {
+        background.setAlpha(255);
+    }
 
     bool isVisible = false;
     const auto isControl = isQtQuickControl(option, widget);

@@ -118,7 +118,7 @@ ForegroundVisited=127,140,141
 
 [Colors:Window]
 BackgroundAlternate=255,255,255
-BackgroundNormal=255,255,255
+BackgroundNormal=255,255,255,0
 DecorationFocus=61,174,233
 DecorationHover=147,206,233
 ForegroundActive=61,174,233
