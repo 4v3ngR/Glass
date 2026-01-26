@@ -85,7 +85,7 @@ sudo xbps-install -Sy git extra-cmake-modules base-devel qt5-devel qt6-base-deve
 ```
 
 ```
-git clone --single-branch --depth=1 https://github.com/Bali10050/Glass.git
+git clone --single-branch --depth=1 https://github.com/4v3ngR/Glass.git
 cd Glass
 ./install.sh
 ```
