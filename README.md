@@ -85,7 +85,7 @@ sudo xbps-install -Sy git extra-cmake-modules base-devel qt5-devel qt6-base-deve
 ```
 
 ```
-git clone --single-branch --depth=1 https://github.com/Bali10050/Glass.git
+git clone --single-branch --depth=1 https://github.com/4v3ngR/Glass.git
 cd Glass
 ./install.sh
 ```
@@ -103,7 +103,7 @@ sudo pacman -S --noconfirm cmake extra-cmake-modules kdecoration qt6-declarative
 ```
 
 ```
-git clone --single-branch --depth=1 https://github.com/Bali10050/Glass.git
+git clone --single-branch --depth=1 https://github.com/4v3ngR/Glass.git
 cd Glass
 ./install.sh
 ```
@@ -126,7 +126,7 @@ sudo dnf install -y git cmake extra-cmake-modules "cmake(KDecoration3)" kwin-dev
 ```
 
 ```
-git clone --single-branch --depth=1 https://github.com/Bali10050/Glass.git
+git clone --single-branch --depth=1 https://github.com/4v3ngR/Glass.git
 cd Glass
 ./install.sh
 ```
@@ -152,7 +152,7 @@ sudo zypper in --no-recommends git ninja cmake kf6-extra-cmake-modules kf6-kconf
 ```
 
 ```
-git clone --single-branch --depth=1 https://github.com/Bali10050/Glass.git
+git clone --single-branch --depth=1 https://github.com/4v3ngR/Glass.git
 cd Glass
 ./install.sh
 ```
@@ -176,7 +176,7 @@ sudo apt install -y git build-essential cmake kf6-extra-cmake-modules \
 ```
 
 ```
-git clone --single-branch --depth=1 https://github.com/Bali10050/Glass.git
+git clone --single-branch --depth=1 https://github.com/4v3ngR/Glass.git
 cd Glass
 ./install.sh
 ```
@@ -200,7 +200,7 @@ sudo dnf install -y git cmake extra-cmake-modules "cmake(KDecoration3)" kwin-dev
     "cmake(KF5KIO)" kf5-kpackage-devel kf5-kcmutils-devel qt5-qtquickcontrols2-devel \
     kf5-kirigami2-devel "cmake(KF5FrameworkIntegration)"
 
-git clone --single-branch --depth=1 https://github.com/Bali10050/Glass.git
+git clone --single-branch --depth=1 https://github.com/4v3ngR/Glass.git
 cd Glass
 mkdir build
 cd build
@@ -237,7 +237,7 @@ sudo apt-get install -y -qq cmake build-essential libkf5config-dev libkdecoratio
 ```
 
 ```
-git clone --single-branch --depth=1 https://github.com/Bali10050/Glass.git
+git clone --single-branch --depth=1 https://github.com/4v3ngR/Glass.git
 cd Glass
 ./install.sh
 ```
@@ -259,7 +259,7 @@ qt.platformTheme.name = "qtct";
 To apply the theme, use qt5ct or qt6ct and select Glass
 
 If you want to compile Glass from its source, do the following
-1. add `inputs.glass.url = "github:Bali10050/Glass";` to `flake.nix`
+1. add `inputs.glass.url = "github:4v3ngR/Glass";` to `flake.nix`
 
 2. use the following package names for home-manager or NixOS
 ```nix
@@ -278,7 +278,7 @@ doas apk add --virtual build-deps bash build-base clang21-extra-tools git cmake 
 ```
  
 ```
-git clone --single-branch --depth=1 https://github.com/Bali10050/Glass.git
+git clone --single-branch --depth=1 https://github.com/4v3ngR/Glass.git
 cd Glass
 ./install.sh
 ```
@@ -293,8 +293,6 @@ doas apk del build-deps
 ## Known issues & solutions
 
 ### Blurred icon rendering on Wayland with fractional scaling
-
-As referenced in https://github.com/Bali10050/Glass/issues/14
 
 On Wayland when scaling is set to >100% some icons appear blurred.
 

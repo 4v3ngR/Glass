@@ -1102,23 +1102,27 @@ bool Style::drawWidgetPrimitive(const QStyleOption *option, QPainter *painter, c
                 painter->restore();
                 return true;
             }
+            /*
             painter->setPen(QPen(_helper->separatorColor(_toolsAreaManager->palette()), PenWidth::Frame * widget->devicePixelRatio()));
             painter->drawLine(widget->rect().topLeft(), widget->rect().topRight());
+            */
             painter->restore();
             return true;
         }
 
-        auto color = _toolsAreaManager->palette().brush(mw->isActiveWindow() ? QPalette::Active : QPalette::Inactive, QPalette::Window);
+        auto color = _toolsAreaManager->palette().brush(mw->isActiveWindow() ? QPalette::Active : QPalette::Inactive, QPalette::Base);
 
         if (drawBackground) {
             painter->setPen(Qt::transparent);
             painter->setBrush(color);
-            painter->drawRect(rect);
+            painter->drawRoundedRect(rect, StyleConfigData::cornerRadius(), StyleConfigData::cornerRadius());
         }
 
+        /*
         painter->setPen(_helper->separatorColor(_toolsAreaManager->palette()));
         if (!_isDolphin)
             painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+        */
 
         painter->restore();
     } else if (auto dialog = qobject_cast<const QDialog *>(widget)) {
