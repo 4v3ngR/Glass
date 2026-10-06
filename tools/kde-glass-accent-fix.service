@@ -1,0 +1,12 @@
+[Unit]
+Description=Auto-fix KDE Glass Selection Accent Transparency
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/kde-glass-accent-fix.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
