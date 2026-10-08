@@ -2,9 +2,9 @@
 
 # About this fork
 
-This fork is a fork of [Darkly](https://github.com/Bali10050/Darkly) with the goal of simplification and compatibility with the kde and qt apps that I happen to use. Ultimately I want to remove as many app specific patches as possible while maintaining the shiny glass experience that can be obtained with the help of Better Blur.
+Glass is the matching KDE application style and KWin decoration for the `kwin-effects-glass` compositor effect. This fork builds on [Darkly](https://github.com/Bali10050/Darkly), keeps the shiny translucent appearance, and now includes a fixed dark color scheme plus an optional per-user accent repair service for KDE configurations that persist a transparent selection alpha.
 
-This is a preview using an unmodified breeze colorscheme.
+This is a preview using an unmodified Breeze color scheme.
 
 ![Glass](./.preview.png)
 
@@ -31,15 +31,17 @@ This is a preview using an unmodified breeze colorscheme.
 ### Installation script
 
 > [!NOTE]
-> A script called `install.sh` is now available which both builds and installs this application style.
+> A script called `install.sh` is now available which both builds and installs this application style. Compilation defaults to 2 jobs, override with `JOBS=N`.
 
-`./install.sh` will remove if existing, build and install Glass using both QT5/QT6 dependencies.
+`./install.sh` will remove if existing, build and install Glass using both QT5/QT6 dependencies. The per-user accent repair helper is automatically installed after a successful system install.
 
 `./install.sh QT5` will build & install using only QT5/KF5 dependencies.
 
 `./install.sh QT6` will build & install using only QT6/KF6 dependencies.
 
-`./install.sh remove` will remove Glass.
+`./install.sh helper` will install *only* the per-user accent fix helper (useful for immutable hosts where you cannot run `sudo cmake --install`).
+
+`./install.sh remove` (or `./uninstall.sh`) will remove system Glass files and also remove the user-installed accent fix helper.
 
 ***
 

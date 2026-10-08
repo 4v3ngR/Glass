@@ -232,8 +232,12 @@ void Style::polish(QApplication *app)
         _subApp = true;
     else if (appName == "soffice.bin")
         _isLibreoffice = true;
-    else if (appName == "dolphin")
+    else if (appName == "dolphin") {
         _isDolphin = true;
+        QPalette palette = app->palette();
+        palette.setColor(QPalette::Window, Qt::transparent);
+        app->setPalette(palette);
+    }
     else if (appName == "konsole")
         _isKonsole = true;
     else if (appName == "kdevelop")
@@ -292,13 +296,6 @@ void Style::polish(QWidget *widget)
         widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
         widget->setAttribute(Qt::WA_Hover, true);
         _blurHelper->registerWidget(widget, _isDolphin);
-    }
-
-    // Dolphin always has a transparent window color
-    if (_isDolphin) {
-        QPalette palette = QApplication::palette();
-        palette.setColor(QPalette::Window, Qt::transparent);
-        QApplication::setPalette(palette);
     }
 
     // taken from https://github.com/Bali10050/Darkly/commit/fb851abd8d41b5c23e18bb1198a8c2e526f45614
@@ -1493,75 +1490,7 @@ bool Style::eventFilterPageViewHeader(QWidget *widget, QEvent *event)
 //____________________________________________________________________________
 bool Style::eventFilterScrollArea(QWidget *widget, QEvent *event)
 {
-    switch (event->type()) { // TODO: delete
-    case QEvent::Paint: {
-        // get scrollarea viewport
-        auto scrollArea(qobject_cast<QAbstractScrollArea *>(widget));
-        QWidget *viewport;
-        if (!(scrollArea && (viewport = scrollArea->viewport())))
-            break;
-
-        // get scrollarea horizontal and vertical containers
-        QWidget *child(nullptr);
-        QList<QWidget *> children;
-        if ((child = scrollArea->findChild<QWidget *>("qt_scrollarea_vcontainer"))) {
-            if (child->isVisible()) {
-                children.append(child);
-
-                if (scrollArea->inherits("KItemListContainer")) {
-                    QWidget *parent = scrollArea->parentWidget();
-                    if (parent && parent->inherits("DolphinView")) {
-                        // update if needed
-                        if (!scrollArea->property("VISIBLE-SEPARATORS").toBool()) {
-                            scrollArea->setProperty("VISIBLE-SEPARATORS", true);
-                            scrollArea->update();
-                        }
-                    }
-                }
-            } else {
-                if (scrollArea->inherits("KItemListContainer")) {
-                    QWidget *parent = scrollArea->parentWidget();
-                    if (parent && parent->inherits("DolphinView")) {
-                        // update if needed
-                        if (scrollArea->property("VISIBLE-SEPARATORS").toBool()) {
-                            scrollArea->setProperty("VISIBLE-SEPARATORS", false);
-                            scrollArea->update();
-                        }
-                    }
-                }
-            }
-        }
-
-        if ((child = scrollArea->findChild<QWidget *>("qt_scrollarea_hcontainer")) && child->isVisible()) {
-            children.append(child);
-        }
-
-        if (children.empty())
-            break;
-        if (!scrollArea->styleSheet().isEmpty())
-            break;
-
-        // make sure proper background is rendered behind the containers
-        QPainter painter(scrollArea);
-        painter.setClipRegion(static_cast<QPaintEvent *>(event)->region());
-
-        painter.setPen(Qt::NoPen);
-
-        // decide background color
-        const QPalette::ColorRole role(viewport->backgroundRole());
-        QColor background;
-        if (role == QPalette::Window && hasAlteredBackground(viewport))
-            background = _helper->frameBackgroundColor(viewport->palette());
-        else
-            background = viewport->palette().color(role);
-        painter.setBrush(background);
-
-        // render
-        // foreach( auto* child, children )
-        //{ painter.drawRect( child->geometry() ); }
-
-    } break;
-
+    switch (event->type()) {
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
     case QEvent::MouseMove: {

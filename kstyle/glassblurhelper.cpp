@@ -99,13 +99,20 @@ BlurHelper::BlurHelper(QObject *parent)
 //___________________________________________________________
 void BlurHelper::registerWidget(QWidget *widget, const bool isDolphin)
 {
+    if (!widget)
+        return;
+
+    _isDolphin = isDolphin;
+
+    // only register top-level windows or popup menus
+    if (!widget->isWindow() && !qobject_cast<QMenu *>(widget) && !widget->inherits("QComboBoxPrivateContainer"))
+        return;
+
     // install event filter
     addEventFilter(widget);
 
     // schedule shadow area repaint
     update(widget);
-
-    _isDolphin = isDolphin;
 }
 
 //___________________________________________________________
@@ -159,7 +166,7 @@ QRegion BlurHelper::blurRegion(QWidget *widget) const
         return roundedRegion(rect, StyleConfigData::cornerRadius() + 1, true, true, true, true);
     } else {
         // blur entire window
-        if (widget->palette().color(QPalette::Window).alpha() < 255)
+        if (widget->palette().color(QPalette::Window).alpha() < 255 || _isDolphin || widget->inherits("DolphinMainWindow") || widget->testAttribute(Qt::WA_TranslucentBackground))
             return roundedRegion(rect, StyleConfigData::cornerRadius(), false, false, true, true);
 
         // blur specific widgets
@@ -376,6 +383,12 @@ QRegion BlurHelper::blurSettingsDialogRegion(QWidget *widget) const
 //___________________________________________________________
 void BlurHelper::update(QWidget *widget) const
 {
+    if (!widget)
+        return;
+
+    if (!widget->isWindow() && !qobject_cast<QMenu *>(widget) && !widget->inherits("QComboBoxPrivateContainer"))
+        return;
+
     /*
     directly from bespin code. Supposedly prevent playing with some 'pseudo-widgets'
     that have winId matching some other -random- window
@@ -389,10 +402,5 @@ void BlurHelper::update(QWidget *widget) const
 
     widget->winId(); // force creation of the window handle
     KWindowEffects::enableBlurBehind(widget->windowHandle(), true, region);
-
-    // force update
-    if (widget->isVisible()) {
-        widget->update();
-    }
 }
 }

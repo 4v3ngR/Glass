@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# Install/remove only the current user's Glass accent repair assets.
+set -euo pipefail
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+SCRIPT_NAME=kde-glass-accent-fix.py
+UNIT_NAME=kde-glass-accent-fix.service
+SCHEME_NAME=GlassDarkFixed.colors
+
+if [[ $# -ne 1 || ( ${1:-} != install && ${1:-} != remove ) ]]; then
+    printf 'Usage: %s {install|remove}\n' "$0" >&2
+    exit 2
+fi
+
+# Never guess a desktop user or operate on root's HOME via sudo. The parent
+# build scripts use sudo only for system files, not for this helper.
+if (( EUID == 0 )); then
+    printf 'Run this command as your desktop user (without sudo):\n  %q %s\n' "$0" "$1" >&2
+    exit 1
+fi
+: "${HOME:?HOME must point to the desktop user home}"
+[[ $HOME == /* && $HOME != / ]] || { printf 'HOME must be an absolute user directory.\n' >&2; exit 1; }
+
+bin_file=$HOME/.local/bin/$SCRIPT_NAME
+# The preserved helper watches ~/.config, independently of XDG_CONFIG_HOME.
+unit_dir=${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user
+unit_file=$unit_dir/$UNIT_NAME
+scheme_file=${XDG_DATA_HOME:-$HOME/.local/share}/color-schemes/$SCHEME_NAME
+
+user_systemd_available() {
+    command -v systemctl >/dev/null 2>&1 && systemctl --user show-environment >/dev/null 2>&1
+}
+
+case $1 in
+    install)
+        command -v python3 >/dev/null 2>&1 || { printf 'Python 3 is required.\n' >&2; exit 1; }
+        # Ensure the preserved watcher has a directory to watch, even in a fresh HOME.
+        mkdir -p -- "$HOME/.config" "${bin_file%/*}" "$unit_dir" "${scheme_file%/*}"
+        install -m 0755 -- "$SCRIPT_DIR/$SCRIPT_NAME" "$bin_file"
+        install -m 0644 -- "$SCRIPT_DIR/$UNIT_NAME" "$unit_file"
+        install -m 0644 -- "$SCRIPT_DIR/../colors/$SCHEME_NAME" "$scheme_file"
+        if user_systemd_available; then
+            systemctl --user daemon-reload
+            systemctl --user enable "$UNIT_NAME"
+            # Restart also refreshes a previously running version after an update.
+            systemctl --user restart "$UNIT_NAME"
+            printf 'Glass accent repair service enabled and started.\n'
+        else
+            printf 'Glass user files installed; systemd --user unavailable. Activation is deferred.\n'
+            printf 'In your desktop user session (on the host, not in a build container), run:\n'
+            printf '  systemctl --user daemon-reload\n  systemctl --user enable --now %s\n' "$UNIT_NAME"
+        fi
+        ;;
+    remove)
+        if user_systemd_available; then
+            # A missing unit is a successful repeat removal; other errors must
+            # propagate. Query LoadState to also catch units left loaded offline.
+            load_state=$(systemctl --user show --property=LoadState --value "$UNIT_NAME")
+            if [[ -e $unit_file || -L $unit_file || ( -n $load_state && $load_state != not-found ) ]]; then
+                systemctl --user disable --now "$UNIT_NAME"
+            fi
+            rm -f -- "$bin_file" "$unit_file" "$scheme_file"
+            if [[ -L $unit_dir/default.target.wants/$UNIT_NAME ]]; then
+                rm -f -- "$unit_dir/default.target.wants/$UNIT_NAME"
+            fi
+            systemctl --user daemon-reload
+            printf 'Glass user helper and fixed scheme removed.\n'
+        else
+            # Remove only this unit's known enablement link, never other services.
+            if [[ -L $unit_dir/default.target.wants/$UNIT_NAME ]]; then
+                rm -f -- "$unit_dir/default.target.wants/$UNIT_NAME"
+            fi
+            rm -f -- "$bin_file" "$unit_file" "$scheme_file"
+            printf 'Glass user files removed; systemd --user unavailable. A running service could not be stopped.\n'
+            printf 'In your desktop user session, finish cleanup with:\n'
+            printf '  systemctl --user stop %s\n  systemctl --user daemon-reload\n' "$UNIT_NAME"
+            printf 'If the unit is already absent, a unit-not-found message is harmless.\n'
+        fi
+        ;;
+esac
