@@ -1042,6 +1042,8 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
         fcn = &Style::drawFramePrimitive;
         break;
     case PE_PanelLineEdit:
+        if (_isDolphin) fcn = &Style::drawFrameLineEditPrimitive;
+        break;
     case PE_FrameLineEdit:
         fcn = &Style::drawFrameLineEditPrimitive;
         break;
