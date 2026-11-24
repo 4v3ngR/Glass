@@ -1041,6 +1041,7 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
     case PE_Frame:
         fcn = &Style::drawFramePrimitive;
         break;
+    case PE_PanelLineEdit:
     case PE_FrameLineEdit:
         fcn = &Style::drawFrameLineEditPrimitive;
         break;
